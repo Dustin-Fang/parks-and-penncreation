@@ -8,7 +8,11 @@ CREATE TABLE Species (
     Category            varchar(16),
     Seasonality         varchar(16),
     Nativeness          varchar(10),
+    ParkId              int,
+    ParkCode            varchar(4),
     PRIMARY KEY (SpeciesId)
+    FOREIGN KEY (ParkId) REFERENCES Parks(ParkId)
+    FOREIGN KEY (ParkCode) REFERENCES Parks(ParkCode)
 );
 
 CREATE TABLE CommonNames (
