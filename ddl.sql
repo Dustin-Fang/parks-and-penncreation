@@ -48,7 +48,6 @@ CREATE TABLE FoundIn (
 
 CREATE TABLE WeatherEvents (
     EventId         varchar(9),
-    ParkID          int,
     Severity        varchar(10),
     Precipitation   decimal(5, 2),
     Latitude        decimal(7, 4),
@@ -58,6 +57,6 @@ CREATE TABLE WeatherEvents (
     Zipcode         int,
     StartTime       datetime,
     EndTime         datetime,
-    PRIMARY KEY (EventId),
-    FOREIGN KEY (ParkID) REFERENCES Parks(ParkID)
+    Duration        int,
+    PRIMARY KEY (EventId)
 );
