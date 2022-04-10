@@ -1,27 +1,4 @@
-CREATE TABLE Species (
-    SpeciesId           varchar(9),
-    SpeciesOrder        varchar(16),
-    Family              varchar(16),
-    ScientificName      varchar(64),
-    ConservationStatus  varchar(20),
-    Abundance           varchar(10),
-    Category            varchar(16),
-    Seasonality         varchar(16),
-    Nativeness          varchar(10),
-    ParkId              int,
-    ParkCode            varchar(4),
-    PRIMARY KEY (SpeciesId)
-    FOREIGN KEY (ParkId) REFERENCES Parks(ParkId)
-    FOREIGN KEY (ParkCode) REFERENCES Parks(ParkCode)
-);
-
-CREATE TABLE CommonNames (
-    CommonName          varchar(20),
-    SpeciesId           varchar(9),
-    PRIMARY KEY (CommonName),
-    FOREIGN KEY (SpeciesId) REFERENCES Species(SpeciesId)
-);
-
+-- Parks tables --
 CREATE TABLE Parks (
     ParkId      int,
     ParkCode    varchar(4),
@@ -32,31 +9,52 @@ CREATE TABLE Parks (
     PRIMARY KEY (ParkId)
 );
 
-CREATE TABLE Zipcode {
-    Zipcode     int,
-    ParkId      int,
+CREATE TABLE Zipcode (
+    Zipcode int,
+    ParkId  int,
     PRIMARY KEY (Zipcode),
-    FOREIGN KEY (ParkId) REFERENCES Parks(ParkId)
-}
+    FOREIGN KEY (ParkId) REFERENCES Parks (ParkId)
+);
 
-CREATE TABLE FoundIn (
-    SpeciesId   varchar(9),
-    ParkId      int,
-    FOREIGN KEY (SpeciesId) REFERENCES Species(SpeciesId),
+-- Species tables --
+CREATE TABLE Species (
+    SpeciesId           varchar(9),
+    Category            varchar(16),
+    SpeciesOrder        varchar(16),
+    Family              varchar(16),
+    ScientificName      varchar(64),
+    RecordStatus        varchar(64),
+    Occurrence          varchar(64),
+    Nativeness          varchar(64),
+    Abundance           varchar(64),
+    Seasonality         varchar(64),
+    ConservationStatus  varchar(64),
+    ParkId              int,
+    ParkCode            varchar(4),
+    PRIMARY KEY (SpeciesId),
     FOREIGN KEY (ParkId) REFERENCES Parks(ParkId)
 );
 
+CREATE TABLE CommonNames (
+    CommonName          varchar(64),
+    SpeciesId           varchar(9),
+    PRIMARY KEY (CommonName),
+    FOREIGN KEY (SpeciesId) REFERENCES Species(SpeciesId)
+);
+
+-- Weather Table --
 CREATE TABLE WeatherEvents (
     EventId         varchar(9),
+    WeatherType     varchar(8),
     Severity        varchar(10),
+    StartTime       datetime,
+    EndTime         datetime,
     Precipitation   decimal(5, 2),
     Latitude        decimal(7, 4),
     Longitude       decimal(7, 4),
-    Type            varchar(8),
-    State           varchar(2),
+    WeatherState    varchar(2),
     Zipcode         int,
-    StartTime       datetime,
-    EndTime         datetime,
-    Duration        int,
+    Duration        varchar(32),
+    DurationInMinutes        int,
     PRIMARY KEY (EventId)
 );
