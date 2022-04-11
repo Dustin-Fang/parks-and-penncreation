@@ -1,6 +1,18 @@
 Ari's queries:
 
+-- List of parks containing a given animal species, sorted by abundance
+SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance
+FROM Parks P JOIN Species S ON P.ParkId = S.ParkId
+WHERE S.ScientificName = "Lynx rufus"
+ORDER BY S.Abundance;
 
+-- Get all species within a park, sorted by abundance
+SELECT S.SpeciesId AS SpeciesId, S.Category AS Category, S.SpeciesOrder AS SpeciesOrder, S.Family AS Family, S.ScientificName AS ScientificName, S.RecordStatus AS RecordStatus, S.Occurrence as Occurrence, S.Nativeness AS Nativeness, S.Abundance AS Abundance, S.Seasonality AS Seasonality, S.ConservationStatus AS ConservationStatus
+FROM Parks P JOIN Species S ON P.ParkId = S.ParkId
+WHERE P.ParkName = "Crater Lake National Park"
+ORDER BY S.Abundance;
+
+-- Most common weather events experienced by a species in a given year
 
 Gian's queries:
 
