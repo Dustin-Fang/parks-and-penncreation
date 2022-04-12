@@ -1,3 +1,9 @@
+DB Credentials:
+    username: admin
+    password: CIS550parks!
+    endpoint: parksdb.cqeozckq2wg2.us-east-1.rds.amazonaws.com
+    port: 3306
+
 Ari's queries:
 
 -- List of parks containing a given animal species, sorted by abundance
@@ -32,8 +38,14 @@ Gian's queries:
 
 
 Dustin's queries:
+-- Animal of the day --
+SELECT *
+FROM Species
+ORDER BY RAND()
+LIMIT 1;
 
 
+Which park has the most of the set of species in the category that experiences the most weather events of a given event type?
 
 Shanna's queries:
 
