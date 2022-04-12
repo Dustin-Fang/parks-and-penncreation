@@ -4,7 +4,7 @@ Ari's queries:
 SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance
 FROM Parks P JOIN Species S ON P.ParkId = S.ParkId
 WHERE S.ScientificName = "Lynx rufus"
-ORDER BY S.Abundance;
+ORDER BY S.Abundance, P.ParkId;
 
 -- Get all species within a park, sorted by abundance
 SELECT S.SpeciesId AS SpeciesId, S.Category AS Category, S.SpeciesOrder AS SpeciesOrder, S.Family AS Family, S.ScientificName AS ScientificName, S.RecordStatus AS RecordStatus, S.Occurrence as Occurrence, S.Nativeness AS Nativeness, S.Abundance AS Abundance, S.Seasonality AS Seasonality, S.ConservationStatus AS ConservationStatus
@@ -13,6 +13,19 @@ WHERE P.ParkName = "Crater Lake National Park"
 ORDER BY S.Abundance;
 
 -- Most common weather events experienced by a species in a given year
+WITH WeatherTypes AS (
+    WITH SpeciesLocations AS (
+        SELECT S.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+        FROM Species S JOIN Parks P on S.ParkId = P.ParkId
+        WHERE S.ScientificName = 'Lynx rufus'
+        )
+    SELECT WE.WeatherType AS WeatherType
+    FROM WeatherEvents WE JOIN SpeciesLocations SL ON ABS(WE.Latitude - SL.Latitude) <= 5.0 AND ABS(WE.Longitude - SL.Longitude) <= 5.0
+    WHERE WE.StartTime >= '2021-01-01' AND WE.EndTime <= '2021-12-31')
+SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
+FROM WeatherTypes WT
+GROUP BY WT.WeatherType
+ORDER BY COUNT(WT.WeatherType) DESC
 
 Gian's queries:
 
