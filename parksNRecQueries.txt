@@ -44,8 +44,22 @@ FROM Species
 ORDER BY RAND()
 LIMIT 1;
 
+-- Species in the park that experiences the highest percentage of a given weather event type --
+-- Ex: WeatherType = 'Cold' --
 
-Which park has the most of the set of species in the category that experiences the most weather events of a given event type?
+WITH Highest_Occurence_Park AS (
+    SELECT ParkId, COUNT(EventId) / (SELECT COUNT(EventId) FROM WeatherEvents WHERE WeatherType = 'COLD') as WeatherPercentage
+    FROM (SELECT EventId, Latitude, Longitude, WeatherType from WeatherEvents) as w
+        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks) as p on
+        ABS(w.Latitude - p.Latitude) <= 5.0 AND ABS(w.Longitude - p.Longitude) <= 5.0
+    WHERE WeatherType = 'Cold'
+    GROUP BY ParkId
+    ORDER BY WeatherPercentage DESC
+    LIMIT 1
+    )
+SELECT S.SpeciesId, CommonName
+FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
+    JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
 
 Shanna's queries:
 
