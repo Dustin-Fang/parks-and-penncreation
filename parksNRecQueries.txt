@@ -34,6 +34,69 @@ GROUP BY WT.WeatherType
 ORDER BY COUNT(WT.WeatherType) DESC
 
 Gian's queries:
+# ------------------------Simple Queries -------------------------- #
+# Getting a park’s info by zip code (example zipcode of 4609)
+SELECT P.ParkName AS Name, P.ParkCode AS ParkCode, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude
+FROM Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId
+WHERE Z.Zipcode = 4609;
+
+# Getting a park's info by state (example state of colorado)
+SELECT DISTINCT P.ParkName AS Name, P.ParkCode AS ParkCode, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude
+FROM Parks P, WeatherEvents W
+WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0 AND W.WeatherState = 'CO';
+
+# Getting a park's info by name (example park name of Rocky Mountain National Park
+SELECT P.ParkName AS Name, P.ParkCode AS ParkCode, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude
+FROM Parks P
+WHERE P.ParkName = 'Rocky Mountain National Park';
+
+# Get a species' info by a common name (example - fox)
+SELECT S.*
+FROM Species S, CommonNames CN
+WHERE CN.CommonName = 'Fox' AND S.SpeciesID = CN.SpeciesID;
+
+# Get a species' info by a scientific name (Lynx Rufus)
+SELECT S.*
+FROM Species S
+WHERE S.ScientificName = 'Lynx Rufus';
+
+# Get a species' info by zipcode (example zipcode = 4609)
+SELECT S.*
+FROM Species S, Zipcode Z
+WHERE Z.Zipcode = 4609 AND Z.ParkID = S.ParkId;
+
+# Get a species' info by state (example state - Colorado) - THIS ONE IS SUPER NOT OPTIMAL
+# SELECT S.*
+# FROM Species S, Parks P, WeatherEvents W
+# WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0
+  # AND W.WeatherState = 'CO' AND P.ParkID = S.ParkID;
+
+# ------------------------Complex Queries -------------------------- #
+# Given some latitude & longitude ranges (an area) that
+# collects a set of parks, find the type of weather event that
+# prevails the most across some time range (season)
+# Example Latitude & Longitude Range: Southern US <= 40 latitude and between -120 -70 longtitude
+# Example time range / season: Summer (Between June 1 and August 31)
+SELECT W.WeatherType, SUM(W.Duration) as TotalTime
+FROM WeatherEvents W
+WHERE W.Latitude <= 40.0 AND W.Longitude <= -70.0 AND W.Longitude >= -120.0
+  AND (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
+GROUP BY W.WeatherType
+ORDER BY TotalTime DESC
+LIMIT 1;
+
+# Similarly, given some area and time range, for each weather event
+# type & severity combination, order species by total time (duration)
+# experiencing that combination of weather event
+# Example Latitude & Longitude Range: Southern US <= 40 latitude and between -120 -70 longtitude
+# Example time range / season: Summer (Between June 1 and August 31)
+# Also currently suboptimal
+SELECT S.*, W.WeatherType, W.Severity, SUM(W.Duration) as TotalTime
+FROM (SELECT * FROM WeatherEvents where Latitude <= 40.0 AND Longitude <= -70.0 AND Longitude >= -120.0) AS W
+JOIN Species S JOIN Parks P on P.ParkID = S.ParkID AND ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0
+WHERE (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
+GROUP BY W.WeatherType, W.Severity
+ORDER BY TotalTime DESC;
 
 
 
