@@ -111,14 +111,18 @@ LIMIT 1;
 -- Ex: WeatherType = 'Cold' --
 
 WITH Highest_Occurence_Park AS (
-    SELECT ParkId, COUNT(EventId) / (SELECT COUNT(EventId) FROM WeatherEvents WHERE WeatherType = 'COLD') as WeatherPercentage
+    WITH TypeEachPark As (
+    SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
     FROM (SELECT EventId, Latitude, Longitude, WeatherType from WeatherEvents) as w
         JOIN (SELECT Latitude, Longitude, ParkId FROM Parks) as p on
         ABS(w.Latitude - p.Latitude) <= 5.0 AND ABS(w.Longitude - p.Longitude) <= 5.0
     WHERE WeatherType = 'Cold'
     GROUP BY ParkId
-    ORDER BY WeatherPercentage DESC
-    LIMIT 1
+    )
+        SELECT T.ParkId, (T.NumOfEventsByPark / (SELECT SUM(NumOfEventsByPark) FROM TypeEachPark)) as WeatherPercentage
+        FROM TypeEachPark as T
+        ORDER BY WeatherPercentage DESC
+        LIMIT 1
     )
 SELECT S.SpeciesId, CommonName
 FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
