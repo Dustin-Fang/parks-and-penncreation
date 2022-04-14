@@ -125,6 +125,20 @@ FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_
     JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
 
 Shanna's queries:
+# ------------------------Simple Queries -------------------------- #
+# Fun fact: This park has the largesy number of different species 
+# Count the distinct species in each park, order the parks by count,
+# and return the name of the first park 
+
+WITH mostPop AS (
+  SELECT ParkId, SpeciesId, ScientificName, COUNT(DISTINCT SpeciesId) as ct
+  FROM Species
+  GROUP BY ParkId
+  ORDER BY ct DESC
+  LIMIT 1)
+Select ParkName
+FROM Parks
+WHERE ParkId IN (SELECT ParkId from mostPop);
 
 
 
