@@ -125,8 +125,7 @@ FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_
     JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
 
 Shanna's queries:
-# ------------------------Simple Queries -------------------------- #
-# Fun fact: This park has the largesy number of different species 
+# Fun fact: This park has the largest number of different species 
 # Count the distinct species in each park, order the parks by count,
 # and return the name of the first park 
 
@@ -142,7 +141,7 @@ WHERE ParkId IN (SELECT ParkId from mostPop);
 
 # For the park with the highest number of endangered and threatened species, 
 # what percentage of the animals are native to that area? 
-what percentage is not common/abundant in the park?
+# what percentage is not common/abundant in the park?
 
 With mostEndangered AS (
     SELECT SpeciesId, Nativeness, ConservationStatus, Abundance, S.ParkId, COUNT(SpeciesId) as tot, P.ParkName
@@ -157,6 +156,21 @@ SELECT ParkId, Abundance, (SELECT COUNT(SpeciesId) WHERE Nativeness='Native') / 
 FROM Species
 GROUP BY ParkId
 HAVING ParkId IN (Select ParkId from mostEndangered);
+
+# In a given state, which park has the highest number of endangered/threatened species
+With StateParks AS (
+    SELECT DISTINCT ParkId, ParkName
+    FROM Parks P, WeatherEvents W
+    WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0 AND W.WeatherState = 'CA'
+)
+SELECT ParkName, ConservationStatus,
+       (SELECT COUNT(SpeciesId)
+       WHERE ConservationStatus IN ('Endangered', 'Threatened', 'Species of Concern')) as Status
+FROM Species s JOIN StateParks p on s.ParkId=p.ParkId
+GROUP BY ParkName
+HAVING ConservationStatus IS NOT NULL
+ORDER BY Status DESC
+LIMIT 1;
 
 
 
