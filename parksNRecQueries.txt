@@ -140,5 +140,23 @@ Select ParkName
 FROM Parks
 WHERE ParkId IN (SELECT ParkId from mostPop);
 
+# For the park with the highest number of endangered and threatened species, 
+# what percentage of the animals are native to that area? 
+what percentage is not common/abundant in the park?
+
+With mostEndangered AS (
+    SELECT SpeciesId, Nativeness, ConservationStatus, Abundance, S.ParkId, COUNT(SpeciesId) as tot, P.ParkName
+    FROM Parks P JOIN Species S ON P.ParkId = S.ParkId
+    GROUP BY ParkId
+    HAVING ConservationStatus IN ('Endangered', 'Threatened', 'Species of Concern')
+    ORDER BY tot DESC
+    LIMIT 1
+)
+SELECT ParkId, Abundance, (SELECT COUNT(SpeciesId) WHERE Nativeness='Native') / COUNT(SpeciesId) AS NotNative,
+        (SELECT COUNT(SpeciesId) WHERE Abundance IN ('Uncommon', 'Rare', 'Occasional')) / COUNT(SpeciesId) as Common
+FROM Species
+GROUP BY ParkId
+HAVING ParkId IN (Select ParkId from mostEndangered);
+
 
 
