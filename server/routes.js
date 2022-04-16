@@ -13,7 +13,7 @@ const connection = mysqlPkg.createConnection({
 connection.connect();
 
 // root routes (shouldn't go here, only for debugging!)
-async function root(req, res) {
+async function root(_req, res) {
     // basic get to test the root endpoint
     res.status(200).send('Welcome to the Parks and Penncreation Server!');
 }
@@ -24,8 +24,10 @@ async function getAllParks(req, res) {
     connection.query(`SELECT * FROM Parks`, function (error, results, fields) {
         if (error) {
             console.error(error)
+            res.status(404)
             res.json({ error: error })
         } else if (results) {
+            res.status(200)
             res.json({ results: results })
         }
     });
