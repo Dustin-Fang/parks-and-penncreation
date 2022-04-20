@@ -1,7 +1,10 @@
-function App() {
+import NavBar from './NavBar';
+
+function HomePage() {
   return (
     <div className="App">
       <header className="App-header">
+      <NavBar />
         <h1>
          Welcome to Parks n Penncreation!
         </h1>
@@ -10,4 +13,4 @@ function App() {
   );
 }
 
-export default App;
+export default HomePage;
