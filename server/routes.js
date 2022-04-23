@@ -33,7 +33,45 @@ async function getAllParks(req, res) {
     });
 }
 
+// get a park or parks by name, zipcode, or state
+async function getParks(req, res) {
+  let whereClause;
+  let fromClause;
+
+  if (req.body.parkName) {
+    fromClause = `Parks P`;
+    whereClause = `P.ParkName = '${req.body.parkName}'`;
+
+  } else if (req.body.zipcode) {
+    fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
+    whereClause = `Z.Zipcode = ${req.body.zipcode};`
+
+  } else if (req.body.state) {
+    fromClause = `Parks P, WeatherEvents W`;
+    whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
+      P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}';`
+  } else { 
+    res.status(404).json({ error: 'No zipcode, state, or name entered!' })
+  }
+
+  connection.query(`
+  SELECT DISTINCT P.ParkName AS Name, P.ParkCode AS ParkCode, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude
+  FROM ${fromClause}
+  WHERE ${whereClause}`, 
+  function (error, results) {
+      if (error) {
+         // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
 module.exports = {
     root,
     getAllParks,
+    getParks,
 }

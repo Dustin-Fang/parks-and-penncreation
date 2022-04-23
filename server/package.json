@@ -17,5 +17,8 @@
     "node-fetch": "^3.2.3",
     "nodemon": "^2.0.15",
     "supertest": "^6.2.2"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.0"
   }
 }
