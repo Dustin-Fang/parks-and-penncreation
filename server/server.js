@@ -27,6 +27,12 @@ app.post('/parks', routes.getParks)
 // get a fun fact, given a random number between [1-3]
 app.get('/parks/funfact/:id', routes.getParksFunfact)
 
+// get all species (testing)
+app.get('/species/all', routes.getAllSpecies);
+
+// get species by common name, scientific name, zip code, or state
+app.post('/species', routes.getSpecies);
+
 // start the server of the port given in config
 function startApp () {
     app.listen(config.server_port, () => {

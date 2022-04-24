@@ -41,7 +41,7 @@ async function getParks(req, res) {
 
   if (req.body.parkName) {
     fromClause = `Parks P`;
-    whereClause = `P.ParkName = '${req.body.parkName}'`;
+    whereClause = `P.ParkName = '${req.body.parkName}';`;
 
   } else if (req.body.zipcode) {
     fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
@@ -99,6 +99,76 @@ async function getParksFunfact(req, res) {
     res.status(400).json({ error: "No fact id provided!" })
     return;
   }
+}
+
+// species routes
+async function getAllSpecies(req, res) {
+  // basic get all species endpoint
+  connection.query(`SELECT * FROM Species`, function (error, results, fields) {
+      if (error) {
+          console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
+// get a species or species by common name, scientific name, zip code, or state
+async function getSpecies(req, res) {
+  let whereClause;
+  let fromClause;
+
+  if (req.body.commonName) {
+    fromClause = `Species S, CommonNames CN`;
+    whereClause = `CN.CommonName = '${req.body.commonName}' AND S.SpeciesID = CN.SpeciesID;`;
+
+  } else if (req.body.scientificName) {
+    fromClause = `Species S`;
+    whereClause = `S.ScientificName = '${req.body.scientificName}';` 
+  
+  } else if (req.body.zipcode) {
+      fromClause = `Species S, Zipcode Z`;
+      whereClause = `Z.Zipcode = ${req.body.zipcode} AND Z.ParkID = S.ParkId;`
+
+  } else if (req.body.state) {
+    fromClause = `Species S, Parks P, WeatherEvents W`;
+    whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
+      P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}' AND P.ParkID = S.ParkID;`
+  } else { // return a random aninmal
+    connection.query(`
+      SELECT *
+      FROM Species
+      ORDER BY RAND()
+      LIMIT 1;`,
+      function (error, results) {
+        if (error) {
+          // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+        } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+        }
+      });
+  }
+
+  connection.query(`
+  SELECT S.*
+  FROM ${fromClause}
+  WHERE ${whereClause}`, 
+  function (error, results) {
+      if (error) {
+         // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
 }
 
 module.exports = {
