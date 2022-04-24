@@ -1,3 +1,5 @@
+import React from 'react';
+
 function ParksPage() {
   return (
     <div className="ParksPage">

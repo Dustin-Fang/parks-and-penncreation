@@ -5,6 +5,7 @@ import {
   Link,
   useColorModeValue,
 } from '@chakra-ui/react';
+import React from 'react';
 
 function NavBar() {
   return (
@@ -12,7 +13,7 @@ function NavBar() {
       <Box px={4}>
         <Flex h={12} alignItems={'center'} justifyContent={'space-between'}>
     
-            <Box> Parks n' PennCreation</Box> 
+            <Box> Parks n&apos; PennCreation</Box> 
             
           <Flex alignItems={'center'} paddingRight={2}>
               <HStack
@@ -47,6 +48,6 @@ function NavBar() {
       </Box>
     </Box>
   );
-};
+}
 
 export default NavBar;
