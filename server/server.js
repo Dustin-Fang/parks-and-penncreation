@@ -31,7 +31,10 @@ app.get('/parks/funfact/:id', routes.getParksFunfact)
 app.get('/species/all', routes.getAllSpecies);
 
 // get species by common name, scientific name, zip code, or state
-app.post('/species', routes.getSpecies);
+app.get('/species', routes.getSpecies);
+
+// get all parks containing a species
+app.get('/species/parks', routes.getParksBySpecies)
 
 // start the server of the port given in config
 function startApp () {

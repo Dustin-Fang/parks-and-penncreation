@@ -121,22 +121,22 @@ async function getSpecies(req, res) {
   let whereClause;
   let fromClause;
 
-  if (req.body.commonName) {
+  if (req.query.commonName) {
     fromClause = `Species S, CommonNames CN`;
-    whereClause = `CN.CommonName = '${req.body.commonName}' AND S.SpeciesID = CN.SpeciesID;`;
+    whereClause = `CN.CommonName = '${req.query.commonName}' AND S.SpeciesID = CN.SpeciesID;`;
 
-  } else if (req.body.scientificName) {
+  } else if (req.query.scientificName) {
     fromClause = `Species S`;
-    whereClause = `S.ScientificName = '${req.body.scientificName}';` 
+    whereClause = `S.ScientificName = '${req.query.scientificName}';` 
   
-  } else if (req.body.zipcode) {
+  } else if (req.query.zipcode) {
       fromClause = `Species S, Zipcode Z`;
-      whereClause = `Z.Zipcode = ${req.body.zipcode} AND Z.ParkID = S.ParkId;`
+      whereClause = `Z.Zipcode = ${req.query.zipcode} AND Z.ParkID = S.ParkId;`
 
-  } else if (req.body.state) {
+  } else if (req.query.state) {
     fromClause = `Species S, Parks P, WeatherEvents W`;
     whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
-      P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}' AND P.ParkID = S.ParkID;`
+      P.Longitude) <= 1.0 AND W.WeatherState = '${req.query.state}' AND P.ParkID = S.ParkID;`
   } else { // return a random aninmal
     connection.query(`
       SELECT *
@@ -171,9 +171,46 @@ async function getSpecies(req, res) {
   });
 }
 
+// get all parks containing a species or species by common name, scientific name
+async function getParksBySpecies(req, res) {
+  let fromClause;
+  let whereClause;
+
+  if (req.query.commonName) {
+    fromClause = `Parks P JOIN Species S ON P.ParkId = S.ParkId, CommonNames CN`;
+    whereClause = `CN.CommonName = '${req.query.commonName}' AND S.SpeciesID = CN.SpeciesID`;
+
+  } else if (req.query.scientificName) {
+    fromClause = `Parks P JOIN Species S ON P.ParkId = S.ParkId`;
+    whereClause = `S.ScientificName = '${req.query.scientificName}'` 
+
+  } else { 
+    res.status(404).json({ error: 'No common or scientific name entered for getting parks by species.' })
+  }
+
+  connection.query(`
+  SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance
+  FROM ${fromClause}
+  WHERE ${whereClause}
+  ORDER BY S.Abundance, P.ParkId;`, 
+  function (error, results) {
+      if (error) {
+         // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
 module.exports = {
     root,
     getAllParks,
     getParks,
     getParksFunfact,
+    getSpecies,
+    getAllSpecies,
+    getParksBySpecies
 }

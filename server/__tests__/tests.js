@@ -25,7 +25,7 @@ test("POST /species no parameters", async () => {
 
 test("POST /species with common name", async () => {
   
-    await supertest(app).post("/hello?commonName=Fox")
+    await supertest(app).post("/species?commonName=Fox")
       .expect(200)
       .then((response) => {
         // Check text 
@@ -35,7 +35,7 @@ test("POST /species with common name", async () => {
 
 test("POST /species with scientific name", async () => {
   
-    await supertest(app).post("/hello?scientificName=Lynx Rufus")
+    await supertest(app).post("/species?scientificName=Lynx Rufus")
       .expect(200)
       .then((response) => {
         // Check text 
