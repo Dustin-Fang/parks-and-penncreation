@@ -1,6 +1,7 @@
 const config = require('./config.json')
 const mysqlPkg = require('mysql');
 const expressPkg = require('express');
+const { parkFunFacts } = require('./parkFacts');
 
 // connect to the db using the details in config
 const connection = mysqlPkg.createConnection({
@@ -70,8 +71,39 @@ async function getParks(req, res) {
   });
 }
 
+async function getParksFunfact(req, res) {
+  const id = parseInt(req.params.id);
+  let query;
+
+  if (id) {
+    if (id >= 1 && id <= 3) {
+      query = parkFunFacts[id - 1].query;
+  
+    } else {
+      res.status(404).json({ error: "Invalid fact id provided!" })
+      return;
+    }
+
+    connection.query(query, 
+    function (error, results) {
+      if (error) {
+          // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+    });
+  } else {
+    res.status(400).json({ error: "No fact id provided!" })
+    return;
+  }
+}
+
 module.exports = {
     root,
     getAllParks,
     getParks,
+    getParksFunfact,
 }

@@ -21,8 +21,11 @@ app.get('/', routes.root);
 // get all parks (testing)
 app.get('/parks/all', routes.getAllParks)
 
-// get all parks (testing)
+// get parks by state, zip or name (post bc data sent in body)
 app.post('/parks', routes.getParks)
+
+// get a fun fact, given a random number between [1-3]
+app.get('/parks/funfact/:id', routes.getParksFunfact)
 
 // start the server of the port given in config
 function startApp () {
