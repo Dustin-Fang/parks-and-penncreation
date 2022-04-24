@@ -6,6 +6,8 @@ CREATE TABLE Parks (
     Acres       int,
     Latitude    decimal(5, 2),
     Longitude   decimal(5, 2),
+    ImageURL    varchar(500),
+    State       varchar(10),
     PRIMARY KEY (ParkId)
 );
 
