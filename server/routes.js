@@ -153,6 +153,7 @@ async function getSpecies(req, res) {
           res.json({ results: results })
         }
       });
+      return;
   }
 
   connection.query(`
