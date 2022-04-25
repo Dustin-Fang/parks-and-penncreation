@@ -52,7 +52,8 @@ async function getParks(req, res) {
     whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
       P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}';`
   } else { 
-    res.status(404).json({ error: 'No zipcode, state, or name entered!' })
+    res.status(404).json({ message: 'No zipcode, state, or name entered!' })
+    return;
   }
 
   connection.query(`
@@ -62,11 +63,9 @@ async function getParks(req, res) {
   function (error, results) {
       if (error) {
          // console.error(error)
-          res.status(404)
-          res.json({ error: error })
+          res.status(404).json({ error: error })
       } else if (results) {
-          res.status(200)
-          res.json({ results: results })
+          res.status(200).json({ results: results })
       }
   });
 }
