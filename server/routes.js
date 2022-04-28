@@ -41,7 +41,7 @@ async function getParks(req, res) {
 
   if (req.body.parkName) {
     fromClause = `Parks P`;
-    whereClause = `P.ParkName = '${req.body.parkName}'`;
+    whereClause = `P.ParkName = '${req.body.parkName}';`;
 
   } else if (req.body.zipcode) {
     fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
@@ -52,7 +52,8 @@ async function getParks(req, res) {
     whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
       P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}';`
   } else { 
-    res.status(404).json({ error: 'No zipcode, state, or name entered!' })
+    res.status(404).json({ message: 'No zipcode, state, or name entered!' })
+    return;
   }
 
   connection.query(`
@@ -62,11 +63,9 @@ async function getParks(req, res) {
   function (error, results) {
       if (error) {
          // console.error(error)
-          res.status(404)
-          res.json({ error: error })
+          res.status(404).json({ error: error })
       } else if (results) {
-          res.status(200)
-          res.json({ results: results })
+          res.status(200).json({ results: results })
       }
   });
 }
@@ -101,9 +100,117 @@ async function getParksFunfact(req, res) {
   }
 }
 
+// species routes
+async function getAllSpecies(req, res) {
+  // basic get all species endpoint
+  connection.query(`SELECT * FROM Species`, function (error, results, fields) {
+      if (error) {
+          console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
+// get a species or species by common name, scientific name, zip code, or state
+async function getSpecies(req, res) {
+  let whereClause;
+  let fromClause;
+
+  if (req.query.commonName) {
+    fromClause = `Species S, CommonNames CN`;
+    whereClause = `CN.CommonName = '${req.query.commonName}' AND S.SpeciesID = CN.SpeciesID;`;
+
+  } else if (req.query.scientificName) {
+    fromClause = `Species S`;
+    whereClause = `S.ScientificName = '${req.query.scientificName}';` 
+  
+  } else if (req.query.zipcode) {
+      fromClause = `Species S, Zipcode Z`;
+      whereClause = `Z.Zipcode = ${req.query.zipcode} AND Z.ParkID = S.ParkId;`
+
+  } else if (req.query.state) {
+    fromClause = `Species S, Parks P, WeatherEvents W`;
+    whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
+      P.Longitude) <= 1.0 AND W.WeatherState = '${req.query.state}' AND P.ParkID = S.ParkID;`
+  } else { // return a random aninmal
+    connection.query(`
+      SELECT *
+      FROM Species
+      ORDER BY RAND()
+      LIMIT 1;`,
+      function (error, results) {
+        if (error) {
+          // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+        } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+        }
+      });
+      return;
+  }
+
+  connection.query(`
+  SELECT S.*
+  FROM ${fromClause}
+  WHERE ${whereClause}`, 
+  function (error, results) {
+      if (error) {
+         // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
+// get all parks containing a species or species by common name, scientific name
+async function getParksBySpecies(req, res) {
+  let fromClause;
+  let whereClause;
+
+  if (req.query.commonName) {
+    fromClause = `Parks P JOIN Species S ON P.ParkId = S.ParkId, CommonNames CN`;
+    whereClause = `CN.CommonName = '${req.query.commonName}' AND S.SpeciesID = CN.SpeciesID`;
+
+  } else if (req.query.scientificName) {
+    fromClause = `Parks P JOIN Species S ON P.ParkId = S.ParkId`;
+    whereClause = `S.ScientificName = '${req.query.scientificName}'` 
+
+  } else { 
+    res.status(404).json({ error: 'No common or scientific name entered for getting parks by species.' })
+  }
+
+  connection.query(`
+  SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance
+  FROM ${fromClause}
+  WHERE ${whereClause}
+  ORDER BY S.Abundance, P.ParkId;`, 
+  function (error, results) {
+      if (error) {
+         // console.error(error)
+          res.status(404)
+          res.json({ error: error })
+      } else if (results) {
+          res.status(200)
+          res.json({ results: results })
+      }
+  });
+}
+
 module.exports = {
     root,
     getAllParks,
     getParks,
     getParksFunfact,
+    getSpecies,
+    getAllSpecies,
+    getParksBySpecies
 }
