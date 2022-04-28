@@ -102,3 +102,81 @@ Dustin's Query Optimization Log:
 
 
 Shanna's Query Optimization Log:
+For MS3, my initial query took > 15mins.
+
+WITH filtered AS (
+    SELECT ParkId, ParkName, WeatherType, EventId, StartTime
+    FROM WeatherEvents w JOIN Parks p on
+                ABS(w.Latitude - p.Latitude) <= 1.0 AND ABS(w.Longitude - p.Longitude) <= 1.0
+    WHERE StartTime LIKE '2021%'
+), ex AS (
+         SELECT EventId, ParkName, WeatherType,
+           (SELECT COUNT(EventId) FROM filtered WHERE WeatherType IN ('Rain')) / COUNT(EventId) as PercentBad
+         FROM filtered
+        GROUP BY ParkId
+        HAVING PercentBad < 30
+    )
+    SELECT EventId, ParkName,
+           (SELECT COUNT(EventId) FROM filtered WHERE WeatherType IN ('Snow')) / COUNT(EventId) as PercentGood
+    FROM filtered
+    GROUP BY ParkId
+    HAVING PercentGood > 30 AND ParkName IN (SELECT ParkName from ex);
+
+ATTEMPT 2!
+Using optimization techniques from class (using smaller table as outer in join, 
+pushing projections down and JOINS up, etc.) I was able to bring this down to 
+~6min 25s
+
+WITH filteredEvents AS (
+    SELECT *
+    FROM WeatherEvents
+    WHERE StartTime LIKE '2021%'
+), filtered AS (
+    SELECT ParkId, ParkName, WeatherType, EventId, StartTime
+    FROM filteredEvents w
+             JOIN Parks p on
+                ABS(w.Latitude - p.Latitude) <= 1.0 AND ABS(w.Longitude - p.Longitude) <= 1.0
+), ex AS (
+         SELECT EventId, ParkName, WeatherType,
+           (SELECT COUNT(EventId) FROM filtered WHERE WeatherType IN ('Rain')) / COUNT(EventId) as PercentBad
+         FROM filtered
+        GROUP BY ParkId
+        HAVING PercentBad < 30
+    )
+    SELECT EventId, ParkName,
+           (SELECT COUNT(EventId) FROM filtered WHERE WeatherType IN ('Snow')) / COUNT(EventId) as PercentGood
+    FROM filtered
+    GROUP BY ParkId
+    HAVING PercentGood > 30 AND ParkName IN (SELECT ParkName from ex);
+
+Finally, after fixing some more of the logic, and using a view, I was able to bring this time down to 
+~4min 49s
+
+CREATE VIEW filteredEvents AS
+SELECT WeatherType, EventId, StartTime, Latitude, Longitude
+FROM WeatherEvents
+WHERE StartTime LIKE '2021%'; # 480 ms
+
+WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
+    FROM filteredEvents w
+             JOIN Parks p on
+                ABS(w.Latitude - p.Latitude) <= 1.0 AND ABS(w.Longitude - p.Longitude) <= 1.0
+), cts AS (
+         SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT
+         FROM filtered
+            GROUP BY ParkName
+     ) , good AS (SELECT x.ParkName, CT, PercentGood / CT as goodAvg
+        FROM cts e JOIN (SELECT ParkName, COUNT(EventId) as PercentGood FROM filtered WHERE WeatherType='Rain' GROUP BY ParkName) x
+        ON x.ParkName=e.ParkName)
+
+        SELECT g.ParkName, PercentBad / CT as badAvg, goodAvg
+            from good g JOIN (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered WHERE WeatherType='Snow' GROUP BY ParkName) y
+                ON g.ParkName = y.ParkName
+        HAVING badAvg < 0.3 AND goodAvg > 0.3;
+
+This is still very very suboptimal, and I'm working to make it better. My fastest solution
+involved creating a new table of filteredEvents, rather than a view. Creating the table takes ~1 min 30s.
+Using an index on Longitude and latitude on this new table, the query itself takes ~30s to run.
+Then, I'd have to drop the newly made table. This is less than ideal, so I haven't included that query here,
+but I'm currently working on using a similar logic.. perhaps caching the filteredEvents result, or finding
+a way to use a TEMPORARY TABLE instead. 
