@@ -1,0 +1,85 @@
+Ari's Query Optimization Log:
+
+My complex query initially took 2m 15s 349ms to execute. In my first
+optimization attempt, I tried pushing the projections down and moving
+the joins up.
+
+Before:
+-- Count and order the weather events
+WITH WeatherTypes AS (
+    WITH SpeciesLocations AS (
+        SELECT S.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+        FROM Species S JOIN Parks P on S.ParkId = P.ParkId
+        WHERE S.ScientificName = 'Lynx rufus'
+        )
+    SELECT WE.WeatherType AS WeatherType
+    FROM WeatherEvents WE JOIN SpeciesLocations SL ON ABS(WE.Latitude - SL.Latitude) <= 5.0 AND ABS(WE.Longitude - SL.Longitude) <= 5.0
+    WHERE WE.StartTime >= '2021-01-01' AND WE.EndTime <= '2021-12-31')
+SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
+FROM WeatherTypes WT
+GROUP BY WT.WeatherType
+ORDER BY COUNT(WT.WeatherType) DESC;
+
+After:
+-- Optimized query attempt 1 (1m 37s 736ms)
+WITH SpeciesSubset AS (
+    SELECT S.ParkId AS ParkId, S.ScientificName AS ScientificName
+    FROM Species S
+    WHERE S.ScientificName = 'Lynx rufus'
+    ),
+     ParksSubset AS (
+         SELECT P.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+         FROM Parks P
+     ),
+     SpeciesLocations AS (
+         SELECT SS.ParkId AS ParkId, PS.Latitude AS Latitude, PS.Longitude AS Longitude
+         FROM SpeciesSubset SS JOIN ParksSubset PS on SS.ParkId = PS.ParkId
+         ),
+     WeatherEventsSubset AS (
+         SELECT WE.WeatherType AS WeatherType, WE.Latitude AS Latitude, WE.Longitude AS Longitude
+         FROM WeatherEvents WE
+         WHERE WE.StartTime >= '2021-01-01' AND WE.EndTime <= '2021-12-31'
+     ),
+     WeatherTypes AS (
+         SELECT WES.WeatherType AS WeatherType
+         FROM WeatherEventsSubset WES JOIN SpeciesLocations SL ON ABS(WES.Latitude - SL.Latitude) <= 5.0 AND ABS(WES.Longitude - SL.Longitude) <= 5.0)
+SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
+FROM WeatherTypes WT
+GROUP BY WT.WeatherType
+ORDER BY COUNT(WT.WeatherType) DESC;
+
+As noted in the comment, this cut down the runtime about 38 seconds. Still,
+I realized I made a couple small mistakes, so I updated those, which brought
+the time down by another 8 seconds.
+
+-- Optimized query attempt 2 (1m 30s 786ms)
+WITH SpeciesSubset AS (
+    SELECT S.ParkId AS ParkId
+    FROM Species S
+    WHERE S.ScientificName = 'Lynx rufus'
+    ),
+     SpeciesLocations AS (
+         SELECT SS.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+         FROM SpeciesSubset SS JOIN Parks P on SS.ParkId = P.ParkId
+         ),
+     WeatherEventsSubset AS (
+         SELECT WE.WeatherType AS WeatherType, WE.Latitude AS Latitude, WE.Longitude AS Longitude
+         FROM WeatherEvents WE
+         WHERE WE.StartTime >= '2021-01-01' AND WE.EndTime <= '2021-12-31'
+     ),
+     WeatherTypes AS (
+         SELECT WES.WeatherType AS WeatherType
+         FROM WeatherEventsSubset WES JOIN SpeciesLocations SL ON ABS(WES.Latitude - SL.Latitude) <= 5.0 AND ABS(WES.Longitude - SL.Longitude) <= 5.0)
+SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
+FROM WeatherTypes WT
+GROUP BY WT.WeatherType
+ORDER BY COUNT(WT.WeatherType) DESC;
+
+
+Gian's Query Optimization Log:
+
+
+Dustin's Query Optimization Log:
+
+
+Shanna's Query Optimization Log:
