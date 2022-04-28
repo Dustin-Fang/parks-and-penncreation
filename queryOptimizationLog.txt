@@ -1,5 +1,21 @@
+Optimization of All Queries:
+
+(4/28/22)
+On Thursday morning, the four of us met with Rajvi to talk about how to create indexes
+on our datasets. We also talked about how using materialized views could help with
+optimization. Because our WeatherEvents dataset is so large, our group found that relational
+algebra optimization was insufficient in getting queries to run in under a minute.
+
+Our first indexing attempt in the meeting actually slowed down the query. Rajvi recommended
+we use the "explain" key word to help see where our query was getting stuck. We tried
+building an index on start time for weather events. More attempts resulted in similar 
+runtimes to the original query.
+
+
+
 Ari's Query Optimization Log:
 
+(4/27/22)
 My complex query initially took 2m 15s 349ms to execute. In my first
 optimization attempt, I tried pushing the projections down and moving
 the joins up.
@@ -76,10 +92,13 @@ GROUP BY WT.WeatherType
 ORDER BY COUNT(WT.WeatherType) DESC;
 
 
+
 Gian's Query Optimization Log:
 
 
+
 Dustin's Query Optimization Log:
+
 
 
 Shanna's Query Optimization Log:
