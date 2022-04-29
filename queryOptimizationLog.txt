@@ -102,6 +102,7 @@ Dustin's Query Optimization Log:
 
 
 Shanna's Query Optimization Log:
+(4/28/22)
 For MS3, my initial query took > 15mins.
 
 WITH filtered AS (
@@ -148,7 +149,8 @@ WITH filteredEvents AS (
     FROM filtered
     GROUP BY ParkId
     HAVING PercentGood > 30 AND ParkName IN (SELECT ParkName from ex);
-
+    
+ATTEMPT 3!
 Finally, after fixing some more of the logic, and using a view, I was able to bring this time down to 
 ~4min 49s
 
@@ -174,6 +176,7 @@ WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
                 ON g.ParkName = y.ParkName
         HAVING badAvg < 0.3 AND goodAvg > 0.3;
 
+Other attempts
 This is still very very suboptimal, and I'm working to make it better. My fastest solution
 involved creating a new table of filteredEvents, rather than a view. Creating the table takes ~1 min 30s.
 Using an index on Longitude and latitude on this new table, the query itself takes ~30s to run.
