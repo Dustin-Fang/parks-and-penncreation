@@ -91,10 +91,16 @@ FROM WeatherTypes WT
 GROUP BY WT.WeatherType
 ORDER BY COUNT(WT.WeatherType) DESC;
 
-
-
 Gian's Query Optimization Log:
 
+High query time >30 mins
+
+SELECT S.*, W.WeatherType, W.Severity, SUM(W.Duration) as TotalTime
+FROM (SELECT * FROM WeatherEvents where Latitude <= 40.0 AND Longitude <= -70.0 AND Longitude >= -120.0) AS W
+JOIN Species S JOIN Parks P on P.ParkID = S.ParkID AND ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0
+WHERE (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
+GROUP BY W.WeatherType, W.Severity
+ORDER BY TotalTime DESC;
 
 
 Dustin's Query Optimization Log:
