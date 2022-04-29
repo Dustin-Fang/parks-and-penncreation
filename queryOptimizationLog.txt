@@ -98,8 +98,54 @@ Gian's Query Optimization Log:
 
 
 Dustin's Query Optimization Log:
+(4/48/22)
+For MS3, my intial query took ~4mins
 
+Adding projection and selection pushdown brought it to 1m 14s with the following query:
+WITH Highest_Occurence_Park AS (
+    WITH TypeEachPark As (
+    SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
+    FROM (SELECT EventId, Latitude, Longitude, WeatherType from WeatherEvents) as w
+        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks) as p on
+        ABS(w.Latitude - p.Latitude) <= 5.0 AND ABS(w.Longitude - p.Longitude) <= 5.0
+    WHERE WeatherType = 'Cold'
+    GROUP BY ParkId
+    )
+        SELECT T.ParkId, (T.NumOfEventsByPark / (SELECT SUM(NumOfEventsByPark) FROM TypeEachPark)) as WeatherPercentage
+        FROM TypeEachPark as T
+        ORDER BY WeatherPercentage DESC
+        LIMIT 1
+    )
+SELECT S.SpeciesId, CommonName
+FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
+    JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
 
+Attempt 1: Adding index on Latitude and Longitude in the WeatherEventsTable: took ~1m 35s with above query
+
+Attempt 2: Reducing size of joined weatherEvent table by limiting weather events to 2021 and later - ~1m 23s
+WITH filteredEvents AS (
+    SELECT EventId, Latitude, Longitude, WeatherType, StartTime
+    FROM WeatherEvents
+    WHERE StartTime >= '2021-01-01 00:00:00.000'
+), Highest_Occurence_Park AS (
+    WITH TypeEachPark As (SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
+    FROM (SELECT EventId, Latitude, Longitude, WeatherType FROM (filteredEvents)
+        ) as w
+        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks) as p on
+        ABS(w.Latitude - p.Latitude) <= 5.0 AND ABS(w.Longitude - p.Longitude) <= 5.0
+    WHERE WeatherType = 'Cold'
+    GROUP BY ParkId
+    )
+        SELECT T.ParkId, (T.NumOfEventsByPark / (SELECT SUM(NumOfEventsByPark) FROM TypeEachPark)) as WeatherPercentage
+        FROM TypeEachPark as T
+        ORDER BY WeatherPercentage DESC
+        LIMIT 1
+    )
+SELECT S.SpeciesId, CommonName
+FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
+    JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
+
+Attempt 3: Adding index of Latitude and Longitude in parks table with the above query - ~1m 22s
 
 Shanna's Query Optimization Log:
 (4/28/22)
