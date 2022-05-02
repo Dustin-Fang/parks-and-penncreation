@@ -1,8 +1,8 @@
 Make sure to list the before and after query times!
 
-QueryName/Desc      			            Before:          After:
+QueryName/Desc      			            Before:		After:
 
-Weather events by species per year	        2m 15s 349ms
+Weather events by species per year	        2m 15s 349ms		27s 759ms
 Species of park with most weather type      1m 14s 40ms
 
 
