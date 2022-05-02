@@ -153,6 +153,40 @@ FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_
 
 Attempt 3: Adding index of Latitude and Longitude in parks table with the above query - ~1m 22s
 
+Attempt 4: Switching to better range search instead of using ABS to take advantange of Indexes. Also stored
+filtered events as a permanent table into the database. Adding Longitude and Latitude as indexes to filteredEvents
+made query times significantly slower. Using no index of the Parks or filteredEvents table seemed aid query time.
+Query times range based on the type of weather chosen:
+All done with limit 1: Can increase time/results with more time
+
+With Highest_Occurence_Park AS (
+    WITH TypeEachPark As (SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
+    FROM (SELECT EventId, Latitude, Longitude, WeatherType FROM (filteredEvents)
+        ) as w
+        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks_no_indexes) as p on
+        w.Latitude <= 5.0 + p.Latitude AND w.Latitude >= p.Latitude - 5.0 AND
+        w.Longitude <= 5.0 + p.Longitude AND w.Longitude >= p.Longitude - 5.0
+    WHERE WeatherType = ${WeatherType}
+    GROUP BY ParkId
+    )
+        SELECT T.ParkId, (T.NumOfEventsByPark / (SELECT SUM(NumOfEventsByPark) FROM TypeEachPark)) as WeatherPercentage
+        FROM TypeEachPark as T
+        ORDER BY WeatherPercentage DESC
+        LIMIT 1
+    )
+SELECT S.SpeciesId, CommonName
+FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
+    JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId;
+
+WeatherType:
+'Cold': ~1s 865ms
+'Fog': ~8s 743ms
+'Hail': ~947ms
+'Rain': ~17s 309ms
+'Snow': ~4s 324ms
+'Storm': ~1s 118ms
+'Other Precipitation': N/A for filteredEvents
+
 Shanna's Query Optimization Log:
 (4/28/22)
 For MS3, my initial query took > 15mins.
