@@ -133,6 +133,37 @@ WHERE (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM 
 GROUP BY W.WeatherType, W.Severity
 ORDER BY TotalTime DESC;
 
+(5/3/22)
+After a proposal in an email from Rajvi, I tried replacing my "WITH AS" statements with
+nested subqueries. However, this actually made my query two seconds longer than the
+previous attempt.
+
+-- Optimized query attempt 4 (29s 359ms)
+SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
+FROM (
+    SELECT WES.WeatherType AS WeatherType
+    FROM (
+        SELECT FE.WeatherType AS WeatherType, FE.Latitude AS Latitude, FE.Longitude AS Longitude
+        FROM filteredEvents FE
+        ) AS WES
+        JOIN (
+            SELECT SS.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+            FROM (
+                SELECT S.ParkId AS ParkId
+                FROM Species S
+                WHERE S.ScientificName = 'Lynx rufus'
+                ) AS SS
+                JOIN Parks P on SS.ParkId = P.ParkId
+        ) AS SL
+            ON
+                WES.Latitude <= 5.0 + SL.Latitude AND WES.Latitude >= SL.Latitude - 5.0 AND
+                WES.Longitude <= 5.0 + SL.Longitude AND WES.Longitude >= SL.Longitude - 5.0)
+    AS WT
+GROUP BY WT.WeatherType
+ORDER BY COUNT(WT.WeatherType) DESC;
+
+I'm sticking with attempt 3 and adding that version to the document where we're recording
+our queries.
 
 
 Dustin's Query Optimization Log:

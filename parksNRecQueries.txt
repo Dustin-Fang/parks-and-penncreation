@@ -19,19 +19,28 @@ WHERE P.ParkName = "Crater Lake National Park"
 ORDER BY S.Abundance;
 
 -- Most common weather events experienced by a species in a given year
-WITH WeatherTypes AS (
-    WITH SpeciesLocations AS (
-        SELECT S.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
-        FROM Species S JOIN Parks P on S.ParkId = P.ParkId
-        WHERE S.ScientificName = 'Lynx rufus'
-        )
-    SELECT WE.WeatherType AS WeatherType
-    FROM WeatherEvents WE JOIN SpeciesLocations SL ON ABS(WE.Latitude - SL.Latitude) <= 5.0 AND ABS(WE.Longitude - SL.Longitude) <= 5.0
-    WHERE WE.StartTime >= '2021-01-01' AND WE.EndTime <= '2021-12-31')
+WITH SpeciesSubset AS (
+    SELECT S.ParkId AS ParkId
+    FROM Species S
+    WHERE S.ScientificName = 'Lynx rufus'
+    ),
+     SpeciesLocations AS (
+         SELECT SS.ParkId AS ParkId, P.Latitude AS Latitude, P.Longitude AS Longitude
+         FROM SpeciesSubset SS JOIN Parks P on SS.ParkId = P.ParkId
+         ),
+     WeatherEventsSubset AS (
+         SELECT FE.WeatherType AS WeatherType, FE.Latitude AS Latitude, FE.Longitude AS Longitude
+         FROM filteredEvents FE
+     ),
+     WeatherTypes AS (
+         SELECT WES.WeatherType AS WeatherType
+         FROM WeatherEventsSubset WES JOIN SpeciesLocations SL ON
+             WES.Latitude <= 5.0 + SL.Latitude AND WES.Latitude >= SL.Latitude - 5.0 AND
+             WES.Longitude <= 5.0 + SL.Longitude AND WES.Longitude >= SL.Longitude - 5.0)
 SELECT WT.WeatherType AS WeatherType, COUNT(WT.WeatherType) AS Occurances
 FROM WeatherTypes WT
 GROUP BY WT.WeatherType
-ORDER BY COUNT(WT.WeatherType) DESC
+ORDER BY COUNT(WT.WeatherType) DESC;
 
 Gian's queries:
 # ------------------------Simple Queries -------------------------- #
