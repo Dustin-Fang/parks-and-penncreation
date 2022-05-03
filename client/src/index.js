@@ -6,12 +6,13 @@ import {
 	Switch
 } from 'react-router-dom';
 
+import { ChakraProvider } from '@chakra-ui/react';
 import HomePage from './components/HomePage';
 import ParksPage from './components/ParksPage';
 import SpeciesPage from './components/SpeciesPage';
 
 ReactDOM.render(
-  <div>
+  <ChakraProvider>
     <Router>
       <Switch>
         <Route exact
@@ -31,6 +32,6 @@ ReactDOM.render(
 							)}/>
       </Switch>
     </Router>
-  </div>,
+    </ChakraProvider>,
   document.getElementById('root')
 );
