@@ -328,7 +328,7 @@ WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
         HAVING badAvg < 0.3 AND goodAvg > 0.3;
 
 
-ATTEMPT 4: After using a view of filtered events, my other optimization attempts involved using temporary tables, and attempting to cache the result, but ultimately the most effective for this and the other complex queries was to create a separate table with just the weather events from 2021. 
+ATTEMPT 4! After using a view of filtered events, my other optimization attempts involved using temporary tables, and attempting to cache the result, but ultimately the most effective for this and the other complex queries was to create a separate table with just the weather events from 2021. 
 
 table creation: 
 
@@ -363,7 +363,7 @@ WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
         
         
         
-ATTEMPT 5: 
+ATTEMPT 5! 
 Using further advice from Rajvi, I was able to decrease the query by 3s using nested WITH AS statements.
 
 ~27s 
