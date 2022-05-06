@@ -211,5 +211,23 @@ HAVING ConservationStatus IS NOT NULL
 ORDER BY Status DESC
 LIMIT 1;
 
+--- complex query -----
+
+WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
+    FROM filteredEvents fe JOIN Parks p
+    ON ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
+)
+    SELECT percentGood.ParkName, totalBad / CT as badAvg, goodAvg
+    FROM (SELECT good.ParkName, CT, totalGood / CT as goodAvg
+        FROM
+             (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
+                 JOIN
+             (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered WHERE WeatherType='Fog' GROUP BY ParkName) good
+        ON good.ParkName=totals.ParkName) percentGood
+        JOIN
+        (SELECT ParkName, COUNT(EventId) as totalBad FROM filtered WHERE WeatherType='Snow' GROUP BY ParkName) bad
+    ON percentGood.ParkName = bad.ParkName
+    HAVING badAvg < 0.3 AND goodAvg > 0.3;
+
 
 
