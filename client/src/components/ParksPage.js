@@ -61,7 +61,7 @@ class ParksPage extends React.Component {
     }
 
     componentDidMount() {
-        getPlayerSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
+        getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
             this.setState({ parksResults: res.results })
         })
         getPark(this.state.selectedParkId).then(res => {

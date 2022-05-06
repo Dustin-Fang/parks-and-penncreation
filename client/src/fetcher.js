@@ -1,7 +1,7 @@
-const getPark = async (id) => {
-    //TODO
+export const getPark = async (id) => {
+   return;
 }
 
-const getParksSearch = async (name, zipcode, state, page, pagesize) => {
-    //TODO
+export const getParksSearch = async (name, zipcode, state, page, pagesize) => {
+  return;
 }

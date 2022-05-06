@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import {
 	BrowserRouter as Router,
 	Route,
@@ -12,8 +12,10 @@ import ParksPage from './components/ParksPage';
 import SpeciesPage from './components/SpeciesPage';
 import 'antd/dist/antd.min.css';
 
-ReactDOM.render(
-  <ChakraProvider>
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <ChakraProvider>
     <Router>
       <Switch>
         <Route exact
@@ -33,6 +35,6 @@ ReactDOM.render(
 							)}/>
       </Switch>
     </Router>
-    </ChakraProvider>,
-  document.getElementById('root')
+    </ChakraProvider>
+    </React.StrictMode>
 );
