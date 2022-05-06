@@ -199,7 +199,7 @@ HAVING ParkId IN (Select ParkId from mostEndangered);
 # In a given state, which park has the highest number of endangered/threatened species
 With StateParks AS (
     SELECT DISTINCT ParkId, ParkName
-    FROM Parks P, WeatherEvents W
+    FROM Parks P, filteredEvents W
     WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0 AND W.WeatherState = 'CA'
 )
 SELECT ParkName, ConservationStatus,
