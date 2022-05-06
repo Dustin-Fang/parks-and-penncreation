@@ -74,37 +74,63 @@ SELECT S.*
 FROM Species S, Zipcode Z
 WHERE Z.Zipcode = 4609 AND Z.ParkID = S.ParkId;
 
-# Get a species' info by state (example state - Colorado) - THIS ONE IS SUPER NOT OPTIMAL
-# SELECT S.*
-# FROM Species S, Parks P, WeatherEvents W
-# WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0
-  # AND W.WeatherState = 'CO' AND P.ParkID = S.ParkID;
+# Get a species' info by state (example state - Colorado)
+WITH spJoined AS (
+    SELECT S.*, P.Latitude, P.Longitude
+    FROM Species S JOIN Parks P ON S.ParkId = P.ParkId
+), wSubset AS (
+    SELECT W.Latitude, W.Longitude, W.WeatherState
+    FROM filteredEvents W
+    WHERE W.WeatherState = 'CO'
+)
+SELECT SPJ.*, WS.WeatherState
+FROM spJoined SPJ JOIN wSubset WS ON SPJ.Latitude <= 1.0 + WS.Latitude AND SPJ.Latitude >= WS.Latitude - 1.0 AND
+        SPJ.Longitude <= 1.0 + WS.Longitude AND SPJ.Longitude >= WS.Longitude - 1.0;
 
 # ------------------------Complex Queries -------------------------- #
 # Given some latitude & longitude ranges (an area) that
 # collects a set of parks, find the type of weather event that
 # prevails the most across some time range (season)
 # Example Latitude & Longitude Range: Southern US <= 40 latitude and between -120 -70 longtitude
-# Example time range / season: Summer (Between June 1 and August 31)
+# Example time range / season: Summer (June - August)
+# Time for query ~1 min ---> 3 seconds
 SELECT W.WeatherType, SUM(W.Duration) as TotalTime
-FROM WeatherEvents W
-WHERE W.Latitude <= 40.0 AND W.Longitude <= -70.0 AND W.Longitude >= -120.0
-  AND (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
+FROM filteredEvents W
+WHERE W.Latitude <= 40.0 AND W.Longitude <= -70.0 AND W.Longitude >= -120.0 AND
+      (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
 GROUP BY W.WeatherType
 ORDER BY TotalTime DESC
-LIMIT 1;
+LIMIT 5;
 
-# Similarly, given some area and time range, for each weather event
-# type & severity combination, order species by total time (duration)
-# experiencing that combination of weather event
+# Similarly, given some area range, time range, and species category, find & order the total time / sum(duration)
+# they experienced each type of weather event
 # Example Latitude & Longitude Range: Southern US <= 40 latitude and between -120 -70 longtitude
-# Example time range / season: Summer (Between June 1 and August 31)
-# Also currently suboptimal
-SELECT S.*, W.WeatherType, W.Severity, SUM(W.Duration) as TotalTime
-FROM (SELECT * FROM WeatherEvents where Latitude <= 40.0 AND Longitude <= -70.0 AND Longitude >= -120.0) AS W
-JOIN Species S JOIN Parks P on P.ParkID = S.ParkID AND ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0
-WHERE (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
-GROUP BY W.WeatherType, W.Severity
+# Example time range: Summer (June - August)
+# Example category --> Bird
+# Query time --> 40+ mins to 2 mins & 17 seconds
+WITH speciesSubset AS (
+    SELECT S.Category, S.ParkId
+    FROM Species S
+    WHERE S.Category = 'Bird'
+), parkSubset AS (
+    SELECT P.ParkID, P.Latitude, P.Longitude
+    FROM Parks P
+), joinedParkSpecies AS (
+    SELECT SS.Category, PS.Latitude, PS.Longitude
+    FROM speciesSubset SS JOIN parkSubset PS ON PS.ParkID = SS.ParkID
+), joinedAllSubset AS (
+    SELECT JPS.Category, WS.WeatherType, WS.Duration
+    FROM joinedParkSpecies JPS JOIN filteredEvents WS ON
+        # insert area range here
+        WS.Latitude <= 40.0 AND WS.Longitude <= -70.0 AND WS.Longitude >= -120.0 AND
+        JPS.Latitude <= 1.0 + WS.Latitude AND JPS.Latitude >= WS.Latitude - 1.0 AND
+        JPS.Longitude <= 1.0 + WS.Longitude AND JPS.Longitude >= WS.Longitude - 1.0 AND
+        #insert time range here
+        (EXTRACT(MONTH FROM WS.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN 6 AND 8)
+)
+SELECT JAS.Category, JAS.WeatherType, SUM(JAS.Duration) as TotalTime
+FROM joinedAllSubset as JAS
+GROUP BY JAS.Category, JAS.WeatherType
 ORDER BY TotalTime DESC;
 
 
