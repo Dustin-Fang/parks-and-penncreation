@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "antd": "^4.20.2",
+    "shards-react": "^1.0.3"
+  }
+}
