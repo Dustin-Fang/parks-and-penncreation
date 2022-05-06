@@ -13,8 +13,11 @@ function NavBar() {
       <Box px={4}>
         <Flex h={12} alignItems={'center'} justifyContent={'space-between'}>
     
-            <Box> Parks n&apos; PennCreation</Box> 
-            
+        <Link to="/parks"
+        href={'/'}>
+          Parks n&apos; PennCreation
+          </Link>
+
           <Flex alignItems={'center'} paddingRight={2}>
               <HStack
               as={'nav'}
