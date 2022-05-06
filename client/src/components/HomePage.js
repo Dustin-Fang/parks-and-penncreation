@@ -27,7 +27,10 @@ function HomePage() {
     height="100vh"  
     justifyContent="center"
     alignItems="center"
-    >
+    bgImage=
+    "url(https://www.flushmate.com/sites/flushmate/files/2020-04/Sequoia-Lodge-Gallery-02.jpg)"
+    bgSize="cover"
+   >
       <NavBar/>
       <Box position="absolute" bottom={30} right={50}>
         <Popover>
@@ -51,9 +54,7 @@ function HomePage() {
        <PopoverForm /> 
       </Box>
 
-      {/* placeholder, but would be cool if we can use getty api/web scraping to do different park pictures */}
-      <Image height="100%" width="100%" src='https://www.flushmate.com/sites/flushmate/files/2020-04/Sequoia-Lodge-Gallery-02.jpg'>
-</Image>
+      <Text fontWeight="bold" fontSize="15px" position="absolute" left={1} bottom={0} color="#ebe534"> Sequoia National Park, CA </Text>
   </Flex>
   );
 }
