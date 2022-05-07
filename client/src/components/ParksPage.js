@@ -60,8 +60,8 @@ const SimpleForm = () => {
     )
 }
 
-const { onOpen, onClose, isOpen } = useDisclosure()
-const firstFieldRef = React.useRef(null)
+// const { onOpen, onClose, isOpen } = useDisclosure()
+// const firstFieldRef = React.useRef(null)
 
 class ParksPage extends React.Component {
 
@@ -124,10 +124,10 @@ class ParksPage extends React.Component {
                         <Box padding={2} mr={3} >
 
                             <Popover
-                                isOpen={isOpen}
-                                initialFocusRef={firstFieldRef}
-                                onOpen={onOpen}
-                                onClose={onClose}
+                              //  isOpen={isOpen}
+                                // initialFocusRef={firstFieldRef}
+                              //  onOpen={onOpen}
+                              //  onClose={onClose}
                                 placement='bottom'
                                 closeOnBlur={false}
                             >
@@ -140,7 +140,7 @@ class ParksPage extends React.Component {
                                 <PopoverContent p={5}>
                                     <FocusLock returnFocus persistentFocus={false}>
                                         <PopoverCloseButton />
-                                        <SimpleForm firstFieldRef={firstFieldRef} />
+                                        <SimpleForm  />
                                     </FocusLock>
                                 </PopoverContent>
                             </Popover>
@@ -162,4 +162,4 @@ class ParksPage extends React.Component {
     }
 }
 
-export default { ParksPage };
+export default ParksPage;
