@@ -96,7 +96,7 @@ FROM spJoined SPJ JOIN wSubset WS ON SPJ.Latitude <= 1.0 + WS.Latitude AND SPJ.L
 # Time for query ~1 min ---> 3 seconds
 SELECT W.WeatherType, SUM(W.Duration) as TotalTime
 FROM filteredEvents W
-WHERE W.Latitude <= 40.0 AND W.Longitude <= -70.0 AND W.Longitude >= -120.0 AND
+WHERE W.Latitude <= 40.0 AND W.Latitude >= 40.0 AND W.Longitude <= -70.0 AND W.Longitude >= -120.0 AND
       (EXTRACT(MONTH FROM W.StartTime) BETWEEN 6 AND 8) AND (EXTRACT(MONTH FROM W.EndTime) BETWEEN 6 AND 8)
 GROUP BY W.WeatherType
 ORDER BY TotalTime DESC
@@ -122,7 +122,8 @@ WITH speciesSubset AS (
     SELECT JPS.Category, WS.WeatherType, WS.Duration
     FROM joinedParkSpecies JPS JOIN filteredEvents WS ON
         # insert area range here
-        WS.Latitude <= 40.0 AND WS.Longitude <= -70.0 AND WS.Longitude >= -120.0 AND
+       WHERE W.Latitude <= 40.0 AND W.Latitude >= 40.0 
+       AND W.Longitude <= -70.0 AND W.Longitude >= -120.0 AND
         JPS.Latitude <= 1.0 + WS.Latitude AND JPS.Latitude >= WS.Latitude - 1.0 AND
         JPS.Longitude <= 1.0 + WS.Longitude AND JPS.Longitude >= WS.Longitude - 1.0 AND
         #insert time range here
@@ -145,13 +146,14 @@ LIMIT 1;
 -- Species in the park that experiences the highest percentage of a given weather event type --
 -- Ex: WeatherType = 'Cold' --
 
-WITH Highest_Occurence_Park AS (
-    WITH TypeEachPark As (
-    SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
-    FROM (SELECT EventId, Latitude, Longitude, WeatherType from WeatherEvents) as w
-        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks) as p on
-        ABS(w.Latitude - p.Latitude) <= 5.0 AND ABS(w.Longitude - p.Longitude) <= 5.0
-    WHERE WeatherType = 'Cold'
+With Highest_Occurence_Park AS (
+    WITH TypeEachPark As (SELECT ParkId, COUNT(EventId) as NumOfEventsByPark
+    FROM (SELECT EventId, Latitude, Longitude, WeatherType FROM (filteredEvents)
+        ) as w
+        JOIN (SELECT Latitude, Longitude, ParkId FROM Parks_no_indexes) as p on
+        w.Latitude <= 5.0 + p.Latitude AND w.Latitude >= p.Latitude - 5.0 AND
+        w.Longitude <= 5.0 + p.Longitude AND w.Longitude >= p.Longitude - 5.0
+    WHERE WeatherType = ${WeatherType}
     GROUP BY ParkId
     )
         SELECT T.ParkId, (T.NumOfEventsByPark / (SELECT SUM(NumOfEventsByPark) FROM TypeEachPark)) as WeatherPercentage
