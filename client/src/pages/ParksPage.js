@@ -11,7 +11,8 @@ import {
     FormLabel,
     Input,
     Text,
-    Button
+    Button,
+    Image
 } from '@chakra-ui/react';
 
 import {
@@ -67,9 +68,8 @@ class ParksPage extends React.Component {
     updateSearchResults() {
         getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
             this.setState({ parksResults: res.results })
-        })
-        getPark(this.state.selectedParkId).then(res => {
-            this.setState({ selectedParkDetails: res.results[0] })
+            this.setState({ selectedParkDetails: this.state.parksResults[0] })
+            this.setState({ selectedParkId : this.state.selectedParkDetails.ParkId})
         })
     }
 
@@ -119,13 +119,12 @@ class ParksPage extends React.Component {
                             <Divider />
                             <Table onRow={(record, rowIndex) => {
                                 return {
-                                    onClick: event => { this.goToPark(record.id) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
+                                    onClick: event => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
                                 };
                             }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 10], defaultPageSize: 5, showQuickJumper: true }}>
-                                <Column title="Name" dataIndex="Name" key="Name"></Column>
-                                <Column title="Acres" dataIndex="Acres" key="Acres"></Column>
-                                <Column title="Latitude" dataIndex="Latitude" key="Latitude"></Column>
-                                <Column title="Longitude" dataIndex="Longitude" key="Longitude"></Column>
+                                <Column title="Name" dataIndex="ParkName" key="ParkName"></Column>
+                                <Column title="State" dataIndex="State" key="State"></Column>
+                                <Column title="Zip Code" dataIndex="Zipcode" key="Zipcode"></Column>
                             </Table>
                         </Stack>
                     </Box>
@@ -135,11 +134,25 @@ class ParksPage extends React.Component {
                             <Text fontSize="20px" fontWeight="semibold">
                                 Park Information
                             </Text>
-                            
+                            <Box padding={2} mr={3} bg='white' height='500px'>
+                            {this.state.selectedParkDetails ? 
+                                <Stack>
+                                    <Text fontSize="18px" fontWeight="semibold">{this.selectedParkDetails.ParkName}</Text>
+                                    <Image height="200px" width="200px" src={this.selectedParkDetails.ImageURL}></Image>
+                                    <Text>Zipcode: {this.selectedParkDetails.Zipcode}</Text>
+                                    <Text>State: {this.selectedParkDetails.State}</Text>
+                                    <Text>Acres: {this.selectedParkDetails.Acres}</Text>
+                                    <Text>Latitude: {this.selectedParkDetails.Latitude}</Text>
+                                    <Text>Longitude: {this.selectedParkDetails.Longitude}</Text>
+                                </Stack>
+                                : null}
+                            </Box>
+                         
 
                         </Stack>
                     </Box>
                 </HStack>
+                <Divider />
             </Flex>
         );
     }

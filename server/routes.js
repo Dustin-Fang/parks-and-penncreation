@@ -37,32 +37,41 @@ async function getAllParks(req, res) {
     });
 }
 
-// get a park or parks by name, zipcode, or state
+// get a park or parks by name, zipcode, and/or state
 async function getParks(req, res) {
   let whereClause;
-  let fromClause;
+  let fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
 
-  if (req.body.parkName) {
-    fromClause = `Parks P`;
-    whereClause = `P.ParkName = '${req.body.parkName}';`;
-
-  } else if (req.body.zipcode) {
-    fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
-    whereClause = `Z.Zipcode = ${req.body.zipcode};`
-
-  } else if (req.body.state) {
-    fromClause = `Parks P, WeatherEvents W`;
-    whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
-      P.Longitude) <= 1.0 AND W.WeatherState = '${req.body.state}';`
-  } else { 
-    res.status(404).json({ message: 'No zipcode, state, or name entered!' })
+  if (req.body.ParkId) {
+    whereClause = `P.ParkId = ${req.body.ParkId}`;
+  }
+  else {
+    if (req.body.ParkName) {
+      whereClause = `P.ParkName = '${req.body.ParkName}'`;
+    }
+    if (req.body.Zipcode) {
+      if (whereClause) {
+        whereClause += ` AND `;
+      }
+      whereClause = `Z.Zipcode = ${req.body.Zipcode}`;
+    }
+    if (req.body.State) {
+      if (whereClause) {
+        whereClause += `AND `;
+      }
+      whereClause = `P.State = '${req.body.State}'`;
+    } 
+  }
+  
+  if (!whereClause) { 
+    res.status(404).json({ message: 'No zipcode, state, or name entered!'+whereClause })
     return;
   }
 
   connection.query(`
-  SELECT DISTINCT P.ParkName AS Name, P.ParkCode AS ParkCode, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude
+  SELECT DISTINCT P.ParkName AS ParkName, P.ParkId AS ParkId, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude, Z.Zipcode as Zipcode, P.State as State, P.ImageURL as ImageURL
   FROM ${fromClause}
-  WHERE ${whereClause}`, 
+  WHERE ${whereClause};`, 
   function (error, results) {
       if (error) {
          // console.error(error)
