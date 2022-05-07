@@ -17,31 +17,34 @@ import PopoverForm from './parkSearch'
 import { getRandomAnimal, getParksBySpecies } from '../fetcher';
 
 function HomePage() {
-  //placeholder
-
   const [speciesName, setSpeciesName] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const category = useRef("");
   const scientificName = useRef("");("");
   const family = useRef("");
   const order = useRef("");
   const foundInParks = useRef([]);
+  
 
   async function onAODClick() { 
-    await getRandomAnimal().then((res) => {
-     // console.log(res.results)
-       getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
-         const temp = [];
-        parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
-        foundInParks.current = temp;
-       });
-     
-      setSpeciesName(res.results[0].CommonName);
-      category.current = res.results[0].Category;
-      family.current = res.results[0].Family
-      scientificName.current = res.results[0].ScientificName;
-      order.current = res.results[0].SpeciesOrder;
-
-    }); 
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      await getRandomAnimal().then((res) => {
+        // console.log(res.results)
+          getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
+            const temp = [];
+           parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
+           foundInParks.current = temp;
+          });
+        
+         setSpeciesName(res.results[0].CommonName);
+         category.current = res.results[0].Category;
+         family.current = res.results[0].Family
+         scientificName.current = res.results[0].ScientificName;
+         order.current = res.results[0].SpeciesOrder;
+   
+       }); 
+    }
   }
 
   return (
@@ -56,7 +59,7 @@ function HomePage() {
    >
       <NavBar/>
       <Box position="absolute" bottom={30} right={70}>
-        <Popover>
+        <Popover isOpen={isOpen}>
           <PopoverTrigger>
              <Button onClick={onAODClick}> Animal of the Day </Button>
           </PopoverTrigger>

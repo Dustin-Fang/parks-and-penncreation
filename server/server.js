@@ -6,12 +6,18 @@ var corsPkg = require('cors');
 const routes = require('./routes');
 const config = require('./config.json');
 const bodyParser = require('body-parser');
-
+const cors = require('cors');
 // create a server instance
 const app = new expressPkg();
+app.use(bodyParser.json());
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }),
+);
+app.use(cors()) //do i need this?
 
-
-app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.urlencoded({ extended: false }));
 
 // // allow localhost 3000 (the front end) to connect to this app
 app.use(corsPkg({ credentials: true, origin: ['http://localhost:3000'] }));

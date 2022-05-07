@@ -2,8 +2,8 @@ import {
   Popover,
   PopoverTrigger,
   Button,
-  CheckboxGroup,
-  Checkbox,
+  RadioGroup,
+  Radio,
   HStack,
   PopoverContent,
   Box,
@@ -11,79 +11,99 @@ import {
   FormLabel,
   Input,
   Stack,
-  IconButton,
+  Text,
   PopoverCloseButton,
-  useDisclosure
 } from '@chakra-ui/react';
 
-import {  SearchIcon } from '@chakra-ui/icons';
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import { recommendPark } from '../fetcher.js';
 import FocusLock from "react-focus-lock";
 
 //placeholder, eventually replace with results of query (?)
-const weatherEvents= ['Rain', 'Fog', 'Snow', 'Cold', 'Storm'];
-const severities= ['Light', 'Moderate', 'Severe', 'Heavy'];
-
+const weatherEvents= ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'None'];
 
 // 2. Create the form
 const Form = () => {
+  const desirableSelected = useRef("");
+  const undesirableSelected = useRef("");
+  const [error, setError] = useState("")
+;
+ async function onSearchClick() {
+
+    if(!(desirableSelected.current.length || undesirableSelected.current.length)) {
+      setError("Must select an input!")
+    } else if (desirableSelected.current === undesirableSelected.current) {
+      setError("A weather event cannot both be desirable and undesirable!")
+    } else {
+       recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
+        console.log("test", r);
+      })
+    }
+  }
+
+  function onDesirableClick(e) {
+    if (e.target.value === 'None') {
+      desirableSelected.current = "";
+    } else {
+      desirableSelected.current = e.target.value;
+    }
+  }
+
+  function onUndesirableClick(e) {
+    if (e.target.value === 'None') {
+      undesirableSelected.current = "";
+    } else {
+      undesirableSelected.current = e.target.value;
+    }
+  }
+
   return (
     <Stack>
     <FormControl as='fieldset'>
     <FormLabel >Desirable Weather</FormLabel>
-    <CheckboxGroup defaultValue='Snow'>
+    <RadioGroup onClick={onDesirableClick}>
         {weatherEvents.map((event) => 
-           <Checkbox key={event} value={event}>{event}</Checkbox>
+           <Radio id={"1"} key={event +"1"} value={event}>{event}</Radio>
          )}
-         {severities.map((event) => 
-           <Checkbox  key={event} value={event}>{event}</Checkbox>
-         )}
-    </CheckboxGroup>
+
+    </RadioGroup>
 
     <FormLabel > Undesirable Weather </FormLabel>
-    <CheckboxGroup defaultValue='Rain'>
+    <RadioGroup onClick={onUndesirableClick}>
         {weatherEvents.map((event) => 
-           <Checkbox  key={event} value={event}>{event}</Checkbox>
+           <Radio key={event +"2"} value={event}>{event}</Radio>
          )}
-         {severities.map((event) => 
-           <Checkbox  key={event} value={event}>{event}</Checkbox>
-         )}
-    </CheckboxGroup>
+
+    </RadioGroup>
   </FormControl>
-        <Button colorScheme='green'>
+        <Button  onClick={onSearchClick} colorScheme='green'>
           Search
         </Button>
+       <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {error} </Text>
      </Stack>
   )
 }
 
 const PopoverForm = () => {
-  const { onOpen, onClose, isOpen } = useDisclosure()
-  const firstFieldRef = React.useRef(null)
 
   return (
     <> 
       <Box d='inline-block' bg="#f2f2f0" mr={3} width="500px">
   
       <Popover
-        isOpen={isOpen}
-        initialFocusRef={firstFieldRef}
-        onOpen={onOpen}
-        onClose={onClose}
         placement='bottom'
         closeOnBlur={false}
       >
         <PopoverTrigger>
           <HStack>
           <Input variant='filled' isReadOnly placeholder='Find the park for you' />        
-          <IconButton size='sm' icon={<SearchIcon />} />
           </HStack>
         
         </PopoverTrigger>
         <PopoverContent p={5}>
           <FocusLock returnFocus persistentFocus={false}>
             <PopoverCloseButton />
-            <Form firstFieldRef={firstFieldRef} onCancel={onClose} />
+            <Form  />
           </FocusLock>
         </PopoverContent>
       </Popover>
