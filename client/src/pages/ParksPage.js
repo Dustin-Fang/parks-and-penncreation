@@ -21,7 +21,7 @@ import {
 } from 'antd'
 
 import NavBar from '../components/NavBar';
-import { getParksSearch, getPark } from '../fetcher'
+import { getParksSearch, getPark, getParksFunFact } from '../fetcher'
 
 const { Column } = Table; //, ColumnGroup
 
@@ -35,7 +35,9 @@ class ParksPage extends React.Component {
             stateQuery: '',
             selectedParkId: window.location.search ? window.location.search.substring(1).split('=')[1] : 0,
             selectedParkDetails: null,
-            parksResults: []
+            parksResults: [],
+            factNumber: 1,
+            funFact: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -43,6 +45,7 @@ class ParksPage extends React.Component {
         this.handleZipcodeQueryChange = this.handleZipcodeQueryChange.bind(this)
         this.handleStateQueryChange = this.handleStateQueryChange.bind(this)
         this.setPark = this.setPark.bind(this)
+        this.setFact = this.setFact.bind(this)
     }
 
 
@@ -58,28 +61,36 @@ class ParksPage extends React.Component {
         this.setState({ stateQuery: event.target.value })
     }
 
-    setPark(parkId) {
+    async setPark(parkId) {
         this.setState({ selectedParkId: parkId })
         getPark(this.state.selectedParkId).then(res => {
+            console.log(res)
             this.setState({ selectedParkDetails: res.results[0] })
         })
     }
 
-    updateSearchResults() {
-        getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-            this.setState({ parksResults: res.results })
-            this.setState({ selectedParkDetails: this.state.parksResults[0] })
-            this.setState({ selectedParkId : this.state.selectedParkDetails.ParkId})
+    async setFact() {
+        var rndNum = Math.floor(Math.random * 3) + 1;
+        this.setState({ factNumber: rndNum})
+        getParksFunFact(this.state.factNumber).then(res => {
+            console.log(res.results)
+            this.setState({ funFact: res.results[0] })
         })
     }
 
-    componentDidMount() {
+    async updateSearchResults() {
         getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-            this.setState({ parksResults: res.results })
+            console.log(res.results)
+            this.setState({ parksResults: res.results})
         })
+    }
+
+    async componentDidMount() {
         getPark(this.state.selectedParkId).then(res => {
+            console.log(res.results)
             this.setState({ selectedParkDetails: res.results[0] })
         })
+        this.setFact()
     }
 
     render() {
@@ -125,7 +136,7 @@ class ParksPage extends React.Component {
                                 <Column title="Name" dataIndex="ParkName" key="ParkName"></Column>
                                 <Column title="State" dataIndex="State" key="State"></Column>
                                 <Column title="Zip Code" dataIndex="Zipcode" key="Zipcode"></Column>
-                            </Table>
+                            </Table> 
                         </Stack>
                     </Box>
 
@@ -137,13 +148,16 @@ class ParksPage extends React.Component {
                             <Box padding={2} mr={3} bg='white' height='500px'>
                             {this.state.selectedParkDetails ? 
                                 <Stack>
-                                    <Text fontSize="18px" fontWeight="semibold">{this.selectedParkDetails.ParkName}</Text>
-                                    <Image height="200px" width="200px" src={this.selectedParkDetails.ImageURL}></Image>
-                                    <Text>Zipcode: {this.selectedParkDetails.Zipcode}</Text>
-                                    <Text>State: {this.selectedParkDetails.State}</Text>
-                                    <Text>Acres: {this.selectedParkDetails.Acres}</Text>
-                                    <Text>Latitude: {this.selectedParkDetails.Latitude}</Text>
-                                    <Text>Longitude: {this.selectedParkDetails.Longitude}</Text>
+                                    <Text fontSize="18px" fontWeight="semibold">{this.state.selectedParkDetails.ParkName}</Text>
+                                    <HStack>
+                                    <Image height="200px" width="200px" src={this.state.selectedParkDetails.ImageURL}></Image>
+                                    <Stack>
+                                    <Text>State: {this.state.selectedParkDetails.State}</Text>
+                                    <Text>Acres: {this.state.selectedParkDetails.Acres}</Text>
+                                    <Text>Latitude: {this.state.selectedParkDetails.Latitude}</Text>
+                                    <Text>Longitude: {this.state.selectedParkDetails.Longitude}</Text>
+                                    </Stack>
+                                    </HStack>
                                 </Stack>
                                 : null}
                             </Box>
@@ -152,7 +166,12 @@ class ParksPage extends React.Component {
                         </Stack>
                     </Box>
                 </HStack>
-                <Divider />
+                {/* <Box bg="#A7C193">
+                    <Stack>
+                    <Text fontSize="20px" fontWeight="semibold">Fun Fact:</Text>
+                    <Text>{this.state.funFact}</Text>
+                </Stack>
+                </Box> */}
             </Flex>
         );
     }

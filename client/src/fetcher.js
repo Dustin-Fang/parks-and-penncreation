@@ -5,7 +5,7 @@ export const getPark = async (parkId) => {
     ParkId: parkId
   };
   const inputJSON = JSON.stringify(responseBody);
-
+  
   const response =
     await fetch(`http://${config.server_host}:${config.server_port}/parks`, {
       method: "POST",
@@ -40,8 +40,14 @@ export const getParksSearch = async (parkName, zipcode, state, page, pagesize) =
   return response.json();
 }
 
-
-
+export const getParksFunFact = async (id) => {
+  const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/parks/funfact/${id}`, {
+      method: 'GET',
+    });
+  // console.log(response.json())
+  return response.json();
+}
 
 
 
