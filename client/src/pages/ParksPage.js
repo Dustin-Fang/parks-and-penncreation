@@ -119,7 +119,7 @@ class ParksPage extends React.Component {
                             <Divider />
                             <Table onRow={(record, rowIndex) => {
                                 return {
-                                    onClick: event => { this.goToPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
+                                    onClick: event => { this.goToPark(record.id) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
                                 };
                             }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 10], defaultPageSize: 5, showQuickJumper: true }}>
                                 <Column title="Name" dataIndex="Name" key="Name"></Column>
