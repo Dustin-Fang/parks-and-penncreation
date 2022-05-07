@@ -1,13 +1,13 @@
 import config from './config.json'
 
-export const getPark = async () => {
+export const getPark = async (id) => {
   var res = await fetch(`http://${config.server_host}:${config.server_port}/parks?id=${id}`, {
     method: 'GET',
 })
 return res.json()
 }
 
-export const getParksSearch = async () => {
+export const getParksSearch = async (parkName, zipcode, state, page, pagesize) => {
   var res = await fetch(`http://${config.server_host}:${config.server_port}/parks?parkName=${parkName}&zipcode=${zipcode}&state=${state}&page=${page}&pagesize=${pagesize}`, {
         method: 'GET',
     })

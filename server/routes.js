@@ -537,7 +537,7 @@ async function recommendPark(req, res) {
           FROM
               (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
                   JOIN
-              (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered GROUP BY ParkName) good
+              (SELECT ParkName, 0 as totalGood FROM filtered GROUP BY ParkName) good
           ON good.ParkName=totals.ParkName) percentGood
           JOIN
           (SELECT ParkName, COUNT(EventId) as totalBad FROM filtered ${whereClauseBad} GROUP BY ParkName) bad

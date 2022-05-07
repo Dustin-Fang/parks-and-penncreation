@@ -35,6 +35,7 @@ const Form = () => {
     } else if (desirableSelected.current === undesirableSelected.current) {
       setError("A weather event cannot both be desirable and undesirable!")
     } else {
+      console.log("loading...")
        recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
         console.log("test", r);
       })
@@ -63,7 +64,7 @@ const Form = () => {
     <FormLabel >Desirable Weather</FormLabel>
     <RadioGroup onClick={onDesirableClick}>
         {weatherEvents.map((event) => 
-           <Radio id={"1"} key={event +"1"} value={event}>{event}</Radio>
+           <Radio key={event +"1"} value={event}>{event}</Radio>
          )}
 
     </RadioGroup>
