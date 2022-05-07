@@ -117,9 +117,9 @@ class ParksPage extends React.Component {
                             <Button colorScheme='green' onClick={this.updateSearchResults}>Search</Button>
                             
                             <Divider />
-                            <Table onRow={(record) => {
+                            <Table onRow={(record, rowIndex) => {
                                 return {
-                                    onClick: () => { this.goToPark(record.id) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
+                                    onClick: event => { this.goToPark(record.id) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
                                 };
                             }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 10], defaultPageSize: 5, showQuickJumper: true }}>
                                 <Column title="Name" dataIndex="Name" key="Name"></Column>
