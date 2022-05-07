@@ -8,7 +8,7 @@ import {
 
 import { ChakraProvider } from '@chakra-ui/react';
 import HomePage from './components/HomePage';
-import ParksPage from './components/ParksPage';
+import ParksPage from './pages/ParksPage';
 import SpeciesPage from './components/SpeciesPage';
 import 'antd/dist/antd.min.css';
 
