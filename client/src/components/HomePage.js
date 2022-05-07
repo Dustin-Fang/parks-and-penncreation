@@ -1,6 +1,5 @@
 import {
   Flex,
-  Image,
   Popover,
   PopoverTrigger,
   PopoverBody,
@@ -10,16 +9,40 @@ import {
   Text,
   PopoverCloseButton,
   VStack,
-
+  HStack,
 } from '@chakra-ui/react';
 import NavBar from './NavBar';
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import PopoverForm from './parkSearch'
+import { getRandomAnimal, getParksBySpecies } from '../fetcher';
 
 function HomePage() {
   //placeholder
-  const speciesName = 'Red Fox';
-  const url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Fox_-_British_Wildlife_Centre_%2817429406401%29.jpg/440px-Fox_-_British_Wildlife_Centre_%2817429406401%29.jpg';
+
+  const [speciesName, setSpeciesName] = useState("");
+  const category = useRef("");
+  const scientificName = useRef("");("");
+  const family = useRef("");
+  const order = useRef("");
+  const foundInParks = useRef([]);
+
+  async function onAODClick() { 
+    await getRandomAnimal().then((res) => {
+     // console.log(res.results)
+       getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
+         const temp = [];
+        parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
+        foundInParks.current = temp;
+       });
+     
+      setSpeciesName(res.results[0].CommonName);
+      category.current = res.results[0].Category;
+      family.current = res.results[0].Family
+      scientificName.current = res.results[0].ScientificName;
+      order.current = res.results[0].SpeciesOrder;
+
+    }); 
+  }
 
   return (
     <Flex
@@ -32,19 +55,47 @@ function HomePage() {
     bgSize="cover"
    >
       <NavBar/>
-      <Box position="absolute" bottom={30} right={50}>
+      <Box position="absolute" bottom={30} right={70}>
         <Popover>
           <PopoverTrigger>
-             <Button> Animal of the Day </Button>
+             <Button onClick={onAODClick}> Animal of the Day </Button>
           </PopoverTrigger>
 
           <PopoverContent>
             <PopoverCloseButton />
             <PopoverBody justifyItems="center" alignItems="center">
-              <VStack>
-              <Image height="200px" width="200px" src={url}/>
-             <Text fontFamily="Roboto" fontSize="20px" fontWeight="semibold"> {speciesName} </Text>
-             </VStack>
+              {speciesName.length? <VStack>
+
+              <HStack>
+             <Text fontFamily="Roboto" fontSize="20px" fontWeight="semibold"> {speciesName}, </Text>
+             <Text fontFamily="Roboto" color="blue" fontSize="20px"> {category.current} </Text>
+             </HStack>
+
+            <HStack>
+            <Text fontSize="15px" fontWeight="bold"> Family:  </Text>
+            <Text>  {family.current} </Text>
+            </HStack>
+            
+            <HStack>
+             <Text fontSize="15px" fontWeight="bold"> Species Order:  </Text>
+             <Text> {order.current} </Text>
+             </HStack>
+
+             <HStack>
+             <Text fontWeight="bold" fontSize="15px"> Scientific Name: </Text>
+             <Text>  {scientificName.current} </Text>
+             </HStack>
+
+             {foundInParks.current && 
+             <Box>
+                <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>
+                
+                { foundInParks.current.map(park =>  (<Text key={park.name}>  {park.name}, {park.state} </Text> )) }
+             </Box>
+              
+               }
+
+             </VStack>: <Text> Loading... </Text>}
             </PopoverBody>
           </PopoverContent>
           </Popover>

@@ -203,7 +203,7 @@ async function getParksBySpecies(req, res) {
   }
 
   connection.query(`
-  SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance
+  SELECT P.ParkName AS Name, P.ParkId AS ParkId, S.Abundance AS Abundance, P.State
   FROM ${fromClause}
   WHERE ${whereClause}
   ORDER BY S.Abundance, P.ParkId
