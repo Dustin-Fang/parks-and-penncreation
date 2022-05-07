@@ -13,18 +13,26 @@ import {
 } from '@chakra-ui/react';
 import NavBar from './NavBar';
 import React, { useState, useRef } from 'react';
-import PopoverForm from './parkSearch'
+import PopoverForm from './parkSearch';
 import { getRandomAnimal, getParksBySpecies } from '../fetcher';
+import RPModal from './recommendedParks';
 
 function HomePage() {
   const [speciesName, setSpeciesName] = useState("");
+  // is "animal of day" open?
   const [isOpen, setIsOpen] = useState(false);
   const category = useRef("");
   const scientificName = useRef("");("");
   const family = useRef("");
   const order = useRef("");
-  const foundInParks = useRef([]);
-  
+  const [foundInParks, setFoundInParks] = useState([]);
+  const [recommendedParks, setRecommendedParks] = useState([]);
+
+  // show modal with park results?
+  const [showModal, setShowModal] = useState(false);
+
+  function handleSetShowModal(isOpen) { setShowModal(isOpen) }
+  function handleSetRecParks(arr) { setRecommendedParks(arr) }
 
   async function onAODClick() { 
     setIsOpen(!isOpen);
@@ -34,7 +42,7 @@ function HomePage() {
           getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
             const temp = [];
            parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
-           foundInParks.current = temp;
+           setFoundInParks(temp);
           });
         
          setSpeciesName(res.results[0].CommonName);
@@ -42,7 +50,6 @@ function HomePage() {
          family.current = res.results[0].Family
          scientificName.current = res.results[0].ScientificName;
          order.current = res.results[0].SpeciesOrder;
-   
        }); 
     }
   }
@@ -65,7 +72,7 @@ function HomePage() {
           </PopoverTrigger>
 
           <PopoverContent>
-            <PopoverCloseButton />
+            <PopoverCloseButton onClick={() => setIsOpen(!isOpen)}/>
             <PopoverBody justifyItems="center" alignItems="center">
               {speciesName.length? <VStack>
 
@@ -89,11 +96,11 @@ function HomePage() {
              <Text>  {scientificName.current} </Text>
              </HStack>
 
-             {foundInParks.current && 
+             {foundInParks.length && 
              <Box>
                 <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>
                 
-                { foundInParks.current.map(park =>  (<Text key={park.name}>  {park.name}, {park.state} </Text> )) }
+                { foundInParks.map(park =>  (<Text key={park.name}>  {park.name}, {park.state} </Text> )) }
              </Box>
               
                }
@@ -105,7 +112,8 @@ function HomePage() {
       </Box>
 
       <Box bgColor="#FFFFF" position="absolute" >
-       <PopoverForm /> 
+        {!showModal && <PopoverForm setShowModal={handleSetShowModal} getResults={handleSetRecParks}/>}
+        {showModal && <RPModal setShowModal={handleSetShowModal} results={recommendedParks}/>}
       </Box>
 
       <Text fontWeight="bold" fontSize="15px" position="absolute" left={1} bottom={0} color="#ebe534"> Sequoia National Park, CA </Text>

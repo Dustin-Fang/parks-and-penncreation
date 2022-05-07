@@ -23,21 +23,22 @@ import FocusLock from "react-focus-lock";
 const weatherEvents= ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'None'];
 
 // 2. Create the form
-const Form = () => {
+const Form = ({ setShowModal, getResults }) => {
   const desirableSelected = useRef("");
   const undesirableSelected = useRef("");
-  const [error, setError] = useState("")
-;
- async function onSearchClick() {
+  const [error, setError] = useState("");
 
+  async function onSearchClick() {
     if(!(desirableSelected.current.length || undesirableSelected.current.length)) {
       setError("Must select an input!")
     } else if (desirableSelected.current === undesirableSelected.current) {
       setError("A weather event cannot both be desirable and undesirable!")
     } else {
-      console.log("loading...")
-       recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
-        console.log("test", r);
+      // console.log("loading...")
+      setShowModal(true); 
+      recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
+        // console.log("results are in!", r.results)
+        getResults(r.results);
       })
     }
   }
@@ -85,8 +86,7 @@ const Form = () => {
   )
 }
 
-const PopoverForm = () => {
-
+const PopoverForm = ({ setShowModal, getResults }) => {
   return (
     <> 
       <Box d='inline-block' bg="#f2f2f0" mr={3} width="500px">
@@ -102,11 +102,12 @@ const PopoverForm = () => {
         
         </PopoverTrigger>
         <PopoverContent p={5}>
-          <FocusLock returnFocus persistentFocus={false}>
+          <FocusLock persistentFocus={false}>
             <PopoverCloseButton />
-            <Form  />
+            <Form setShowModal={setShowModal} getResults={getResults}/>
           </FocusLock>
         </PopoverContent>
+  
       </Popover>
       </Box>
     </>
