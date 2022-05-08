@@ -28,9 +28,9 @@ import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeat
 
 const { Column } = Table; //, ColumnGroup
 const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
-const allStates = ['AL', 'AK', 'AZ', 'AS', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 
-                    'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND',
-                    'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', '']
+const allStates = ['AL', 'AK', 'AZ', 'AS', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY',
+    'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND',
+    'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', '']
 
 class ParksPage extends React.Component {
 
@@ -47,6 +47,7 @@ class ParksPage extends React.Component {
             speciesPage: 1,
             funFactPark: '',
             funFactPrompt: '',
+            funFactImage: '',
             weatherEventQuery: '',
             weatherSpeciesPage: 1,
             weatherSpeciesResults: [],
@@ -56,7 +57,10 @@ class ParksPage extends React.Component {
             weatherResults: [],
             searchError: '',
             weatherSearchError: '',
-            radioButtonError: ''
+            radioButtonError: '',
+            radioButtonLoadingMsg: '',
+            weatherLoadingMsg: '',
+            noDataMsg: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -83,7 +87,7 @@ class ParksPage extends React.Component {
     }
 
     handleStateQueryChange(event) {
-        this.setState({ stateQuery: event.target.value})
+        this.setState({ stateQuery: event.target.value })
     }
 
     handleRadioButtonClick(event) {
@@ -114,18 +118,20 @@ class ParksPage extends React.Component {
 
     async mostWeatherSearch() {
         if (!weatherEvents.includes(this.state.weatherEventQuery)) {
-            this.setState({ radioButtonError: "Please choose a weather event to search by."})
+            this.setState({ radioButtonError: "Please choose a weather event to search by." })
         }
         else {
+            this.setState({ radioButtonLoadingMsg: "Loading..." })
             getMostWeatherSpecies(1, this.state.weatherEventQuery).then(res => {
-                this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1, radioButtonError: '' })
+                this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1, radioButtonError: '', radioButtonLoadingMsg: '' })
             })
         }
     }
 
     async turnWeatherSpeciesPage() {
+        this.setState({ radioButtonLoadingMsg: "Turning page, one sec..." })
         getMostWeatherSpecies(this.state.weatherSpeciesPage + 1, this.state.weatherEventQuery).then(res => {
-            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: this.state.weatherSpeciesPage + 1 })
+            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: this.state.weatherSpeciesPage + 1, radioButtonLoadingMsg: '' })
         })
     }
 
@@ -136,36 +142,47 @@ class ParksPage extends React.Component {
     }
 
     async updateSearchResults() {
-        if (!allStates.includes(this.state.stateQuery) ) {
-            this.setState({ searchError: "You can only search with valid two-letter state codes."})
+        if (!allStates.includes(this.state.stateQuery)) {
+            this.setState({ searchError: "You can only search with valid two-letter state codes.", noDataMsg: '' })
         }
-        else if (isNaN(this.state.zipcodeQuery) || this.state.zipcodeQuery.length > 5) {
-            this.setState({ searchError: "Please enter a valid zipcode."})
+        else if (isNaN(this.state.zipcodeQuery) || this.state.zipcodeQuery.length > 5 || 
+        (this.state.zipcodeQuery.length < 4 && this.state.zipcodeQuery.length > 0)) {
+            this.setState({ searchError: "Please enter a valid zipcode.", noDataMsg: '' })
         }
         else {
+            console.log("Zip ", this.state.zipcodeQuery, "State ", this.state.stateQuery)
             getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-                this.setState({ parksResults: res.results , searchError: ''})
+                if (res.results.length) {
+                    this.setState({ parksResults: res.results, searchError: '', noDataMsg: '' })
+                }
+                else {
+                    this.setState({
+                        parksResults: res.results, searchError: '',
+                        noDataMsg: "Sorry! Looks like we don't have any data that matches your query."
+                    })
+                }
             })
         }
     }
 
     async updateWeatherSearchResults() {
         if (this.state.weatherZipcodeQuery === "" || isNaN(this.state.weatherZipcodeQuery) || this.state.weatherZipcodeQuery.length > 5) {
-            this.setState({ weatherSearchError: "Please enter a valid zipcode."})
+            this.setState({ weatherSearchError: "Please enter a valid zipcode." })
         }
         else if (isNaN(this.state.startMonthQuery) || isNaN(this.state.endMonthQuery)) {
-            this.setState({ weatherSearchError: "Month query must be a number."})
+            this.setState({ weatherSearchError: "Month query must be a number." })
         }
         else if (parseInt(this.state.startMonthQuery) > 12 || parseInt(this.state.startMonthQuery) < 1
             || parseInt(this.state.endMonthQuery) > 12 || parseInt(this.state.endMonthQuery) < 1) {
-                this.setState({ weatherSearchError: "Month query must be between 1 and 12."})
+            this.setState({ weatherSearchError: "Month query must be between 1 and 12." })
         }
         else if (parseInt(this.state.endMonthQuery) < parseInt(this.state.startMonthQuery)) {
-            this.setState({ weatherSearchError: "Start month cannot be greater than end month."})
+            this.setState({ weatherSearchError: "Start month cannot be greater than end month." })
         }
         else {
+            this.setState({ weatherLoadingMsg: "Loading..." })
             postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
-                this.setState({ weatherResults: res.results, weatherSearchError: '' })
+                this.setState({ weatherResults: res.results, weatherSearchError: '', weatherLoadingMsg: '' })
             })
         }
     }
@@ -174,7 +191,7 @@ class ParksPage extends React.Component {
         var rndNum = Math.floor(Math.random() * 3) + 1;
         getParksFunFact(rndNum).then(res => {
             console.log(res)
-            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: res.prompt })
+            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: res.prompt, funFactImage: res.results[0].ImageURL })
         })
     }
 
@@ -224,6 +241,9 @@ class ParksPage extends React.Component {
                                 <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.searchError} </Text>
 
                                 <Divider />
+                                {this.state.noDataMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.noDataMsg} </Text>
+                                    : null}
                                 <Table onRow={(record) => {
                                     return {
                                         onClick: () => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
@@ -303,6 +323,10 @@ class ParksPage extends React.Component {
                                 <Button colorScheme='green' onClick={this.updateWeatherSearchResults}>Search</Button>
                                 <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.weatherSearchError} </Text>
 
+                                {this.state.weatherLoadingMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold"> {this.state.weatherLoadingMsg} </Text>
+                                    : null}
+
                                 {this.state.weatherResults ?
                                     <Table spacing={0} padding={0} dataSource={this.state.weatherResults} pagination={false}>
                                         <Column title="Weather Type" dataIndex="WeatherType" key="WeatherType"></Column>
@@ -318,44 +342,56 @@ class ParksPage extends React.Component {
                                     Search for a Random Fun Fact!
                                 </Text>
                                 <Button onClick={this.getFunFact} colorScheme='green'>Search</Button>
+                                <Divider />
                                 {this.state.funFactPark ?
-                                    <Stack>
-                                        <HStack>
-                                            <Text fontWeight="semibold">Park name:</Text>
-                                            <Text>{this.state.funFactPark}</Text>
-                                        </HStack>
-                                        <Text fontWeight="semibold">Fun fact:</Text>
-                                        <Text>{this.state.funFactPrompt}</Text>
-                                    </Stack>
+                                    <Box padding={2} bg='white' width="100%" height="100%">
+                                        <Stack>
+                                            <HStack>
+                                                <Text fontWeight="semibold" fontSize="17px">Park name:</Text>
+                                                <Text fontSize="17px">{this.state.funFactPark}</Text>
+                                            </HStack>
+                                            <Image height="200px" width="100%" src={this.state.funFactImage}></Image>
+                                            <Text fontWeight="semibold" fontSize="17px" padding={0}>Fun fact:</Text>
+                                            <Text fontSize="17px" padding={0}>{this.state.funFactPrompt}</Text>
+                                        </Stack>
+                                    </Box>
                                     : null}
                             </Stack>
                         </Box>
 
                         <Box bg="#A7C193" width="100%" height="600px" padding={5}>
-                            <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a park?</Text>
-                            <FormControl as='fieldset'>
-                                <RadioGroup onClick={this.handleRadioButtonClick}>
-                                    {weatherEvents.map((event) =>
-                                        <Radio key={event + "1"} value={event}>{event}</Radio>
-                                    )}
+                            <Stack>
+                                <Text fontSize="20px" fontWeight="semibold">What species live in the park with the highest amount of a certain weather event?</Text>
+                                <FormControl as='fieldset'>
+                                    <RadioGroup onClick={this.handleRadioButtonClick}>
+                                        <HStack spacing={2}>
+                                            {weatherEvents.map((event) =>
+                                                <Radio spacing={1} key={event + "1"} value={event}>{event}</Radio>
+                                            )}
+                                        </HStack>
 
-                                </RadioGroup>
-                            </FormControl>
-                            <Button onClick={this.mostWeatherSearch} colorScheme='green'>
-                                Search
-                            </Button>
-                            <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.radioButtonError} </Text>
-                            <Divider />
-                            <Text fontWeight="semibold">Species in the park with the highest occurence of your selected event (Click table to see next page):</Text>
-                            {this.state.weatherSpeciesResults ?
-                                <Table onRow={() => {
-                                    return {
-                                        onClick: () => { this.turnWeatherSpeciesPage() }, // clicking the table takes you to the next page
-                                    };
-                                }} spacing={0} padding={0} dataSource={this.state.weatherSpeciesResults} pagination={false}>
-                                    <Column title="Common Name" dataIndex="CommonName" key="CommonName"></Column>
-                                </Table>
-                                : null}
+                                    </RadioGroup>
+                                </FormControl>
+                                <Button onClick={this.mostWeatherSearch} colorScheme='green'>
+                                    Search
+                                </Button>
+                                <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.radioButtonError} </Text>
+                                <Divider />
+                                <Text fontWeight="semibold">Species in the park with the highest occurence of your selected event (Click table to see next page):</Text>
+                                {this.state.weatherSpeciesResults ?
+                                    <Table onRow={() => {
+                                        return {
+                                            onClick: () => { this.turnWeatherSpeciesPage() }, // clicking the table takes you to the next page
+                                        };
+                                    }} spacing={0} padding={0} dataSource={this.state.weatherSpeciesResults} pagination={false}>
+                                        <Column title="Species ID" dataIndex="SpeciesId" key="SpeciesId"></Column>
+                                        <Column title="Common Name" dataIndex="CommonName" key="CommonName"></Column>
+                                    </Table>
+                                    : null}
+                                {this.state.radioButtonLoadingMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold"> {this.state.radioButtonLoadingMsg} </Text>
+                                    : null}
+                            </Stack>
                         </Box>
                     </HStack>
                 </Flex>
