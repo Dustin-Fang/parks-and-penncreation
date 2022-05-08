@@ -150,6 +150,11 @@ FROM joinedAllSubset as JAS
 GROUP BY JAS.WeatherType
 ORDER BY TotalTime DESC;
 
+(5/8/22)
+I reran the query on CommonName = 'Moose', and with all the other changes in
+our tables, the runtime is now 13s! With CommonName = 'Rattlesnake', it's
+1.25s!!!!!
+
 
 
 Gian's Query Optimization Log:
