@@ -57,7 +57,9 @@ class ParksPage extends React.Component {
             weatherResults: [],
             searchError: '',
             weatherSearchError: '',
-            radioButtonError: ''
+            radioButtonError: '',
+            radioButtonLoadingMsg: '',
+            weatherLoadingMsg: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -118,15 +120,17 @@ class ParksPage extends React.Component {
             this.setState({ radioButtonError: "Please choose a weather event to search by." })
         }
         else {
+            this.setState({ radioButtonLoadingMsg: "Loading..." })
             getMostWeatherSpecies(1, this.state.weatherEventQuery).then(res => {
-                this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1, radioButtonError: '' })
+                this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1, radioButtonError: '', radioButtonLoadingMsg: '' })
             })
         }
     }
 
     async turnWeatherSpeciesPage() {
+        this.setState({ radioButtonLoadingMsg: "Turning page, one sec..." })
         getMostWeatherSpecies(this.state.weatherSpeciesPage + 1, this.state.weatherEventQuery).then(res => {
-            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: this.state.weatherSpeciesPage + 1 })
+            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: this.state.weatherSpeciesPage + 1, radioButtonLoadingMsg: '' })
         })
     }
 
@@ -165,8 +169,9 @@ class ParksPage extends React.Component {
             this.setState({ weatherSearchError: "Start month cannot be greater than end month." })
         }
         else {
+            this.setState({ weatherLoadingMsg: "Loading..." })
             postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
-                this.setState({ weatherResults: res.results, weatherSearchError: '' })
+                this.setState({ weatherResults: res.results, weatherSearchError: '', weatherLoadingMsg: '' })
             })
         }
     }
@@ -304,6 +309,10 @@ class ParksPage extends React.Component {
                                 <Button colorScheme='green' onClick={this.updateWeatherSearchResults}>Search</Button>
                                 <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.weatherSearchError} </Text>
 
+                                {this.state.weatherLoadingMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold"> {this.state.weatherLoadingMsg} </Text>
+                                    : null}
+
                                 {this.state.weatherResults ?
                                     <Table spacing={0} padding={0} dataSource={this.state.weatherResults} pagination={false}>
                                         <Column title="Weather Type" dataIndex="WeatherType" key="WeatherType"></Column>
@@ -321,15 +330,17 @@ class ParksPage extends React.Component {
                                 <Button onClick={this.getFunFact} colorScheme='green'>Search</Button>
                                 <Divider />
                                 {this.state.funFactPark ?
-                                    <Stack>
-                                        <HStack>
-                                            <Text fontWeight="semibold" fontSize="17px">Park name:</Text>
-                                            <Text fontSize="17px">{this.state.funFactPark}</Text>
-                                        </HStack>
-                                        <Image height="200px" width="100%" src={this.state.funFactImage}></Image>
-                                        <Text fontWeight="semibold" fontSize="17px" padding={0}>Fun fact:</Text>
-                                        <Text fontSize="17px" padding={0}>{this.state.funFactPrompt}</Text>
-                                    </Stack>
+                                    <Box padding={2} bg='white' width="100%" height="100%">
+                                        <Stack>
+                                            <HStack>
+                                                <Text fontWeight="semibold" fontSize="17px">Park name:</Text>
+                                                <Text fontSize="17px">{this.state.funFactPark}</Text>
+                                            </HStack>
+                                            <Image height="200px" width="100%" src={this.state.funFactImage}></Image>
+                                            <Text fontWeight="semibold" fontSize="17px" padding={0}>Fun fact:</Text>
+                                            <Text fontSize="17px" padding={0}>{this.state.funFactPrompt}</Text>
+                                        </Stack>
+                                    </Box>
                                     : null}
                             </Stack>
                         </Box>
@@ -359,6 +370,9 @@ class ParksPage extends React.Component {
                                     }} spacing={0} padding={0} dataSource={this.state.weatherSpeciesResults} pagination={false}>
                                         <Column title="Common Name" dataIndex="CommonName" key="CommonName"></Column>
                                     </Table>
+                                    : null}
+                                {this.state.radioButtonLoadingMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold"> {this.state.radioButtonLoadingMsg} </Text>
                                     : null}
                             </Stack>
                         </Box>
