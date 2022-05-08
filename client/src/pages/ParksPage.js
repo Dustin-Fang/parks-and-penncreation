@@ -118,7 +118,7 @@ class ParksPage extends React.Component {
         var rndNum = Math.floor(Math.random() * 3) + 1;
         getParksFunFact(rndNum).then(res => {
             console.log(res)
-            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum]})
+            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum-1]})
         })
     }
 
