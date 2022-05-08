@@ -39,10 +39,10 @@ async function getAllParks(req, res) {
 
 // get a park or parks by name, zipcode, and/or state
 async function getParks(req, res) {
-  let whereClause;
+  let whereClause = ``;
   let fromClause = `Parks P JOIN Zipcode Z ON P.ParkId = Z.ParkId`;
 
-  if (req.body.ParkId) {
+  if (req.body.ParkId >= 0) {
     whereClause = `P.ParkId = ${req.body.ParkId}`;
   }
   else {
@@ -63,18 +63,18 @@ async function getParks(req, res) {
     } 
   }
   
-  if (!whereClause) { 
-    res.status(404).json({ message: 'No zipcode, state, or name entered!'+whereClause })
+  if (!whereClause.length) { 
+    res.status(404).json({ message: 'No zipcode, state, or name entered! '+ whereClause })
     return;
   }
 
   connection.query(`
-  SELECT DISTINCT P.ParkName AS ParkName, P.ParkId AS ParkId, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude, Z.Zipcode as Zipcode, P.State as State, P.ImageURL as ImageURL
+  SELECT DISTINCT P.ParkName AS ParkName, P.ParkId AS ParkId, P.Acres as Acres, P.Latitude AS Latitude, P.Longitude as Longitude, P.State as State, P.ImageURL as ImageURL
   FROM ${fromClause}
   WHERE ${whereClause};`, 
   function (error, results) {
       if (error) {
-         // console.error(error)
+          //console.error(error)
           res.status(404).json({ error: error })
       } else if (results) {
           res.status(200).json({ results: results })
