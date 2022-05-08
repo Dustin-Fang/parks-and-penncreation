@@ -19,11 +19,10 @@ import React, { useRef, useState } from 'react';
 import { recommendPark } from '../fetcher.js';
 import FocusLock from "react-focus-lock";
 
-//placeholder, eventually replace with results of query (?)
 const weatherEvents= ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'None'];
 
-// 2. Create the form
-const Form = ({ setShowModal, getResults }) => {
+// Create the form
+const Form = ({ setShowModal, getResults, setModalHeader }) => {
   const desirableSelected = useRef("");
   const undesirableSelected = useRef("");
   const [error, setError] = useState("");
@@ -31,14 +30,25 @@ const Form = ({ setShowModal, getResults }) => {
   async function onSearchClick() {
     if(!(desirableSelected.current.length || undesirableSelected.current.length)) {
       setError("Must select an input!")
-    } else if (desirableSelected.current === undesirableSelected.current) {
+    } 
+    else if (desirableSelected.current === undesirableSelected.current) {
       setError("A weather event cannot both be desirable and undesirable!")
-    } else {
+    } 
+    else {
       // console.log("loading...")
       setShowModal(true); 
       recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
-        // console.log("results are in!", r.results)
+        if (!r.results.length) {
+          undesirableSelected.current = '';
+          desirableSelected.current = '';
+          recommendPark(undesirableSelected.current, desirableSelected.current).then((res) => {
+            setModalHeader("None of our parks matched your query, but we think you would still love");
+            getResults(res.results);
+          })
+       } else {
+        setModalHeader("We thought you would love these parks");
         getResults(r.results);
+       } 
       })
     }
   }
@@ -86,7 +96,7 @@ const Form = ({ setShowModal, getResults }) => {
   )
 }
 
-const PopoverForm = ({ setShowModal, getResults }) => {
+const PopoverForm = ({ setShowModal, getResults, setModalHeader }) => {
   return (
     <> 
       <Box d='inline-block' bg="#f2f2f0" mr={3} width="500px">
@@ -104,7 +114,7 @@ const PopoverForm = ({ setShowModal, getResults }) => {
         <PopoverContent p={5}>
           <FocusLock persistentFocus={false}>
             <PopoverCloseButton />
-            <Form setShowModal={setShowModal} getResults={getResults}/>
+            <Form setShowModal={setShowModal} getResults={getResults} setModalHeader={setModalHeader}/>
           </FocusLock>
         </PopoverContent>
   

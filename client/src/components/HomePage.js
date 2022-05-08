@@ -27,30 +27,56 @@ function HomePage() {
   const order = useRef("");
   const [foundInParks, setFoundInParks] = useState([]);
   const [recommendedParks, setRecommendedParks] = useState([]);
-
+  const [modalHeader, setModalHeader] = useState("");
   // show modal with park results?
   const [showModal, setShowModal] = useState(false);
 
-  function handleSetShowModal(isOpen) { setShowModal(isOpen) }
+  function handleSetShowModal(isOpen) { handleSetRecParks([]); setShowModal(isOpen) }
   function handleSetRecParks(arr) { setRecommendedParks(arr) }
+  function handleSetModalHeader(body) { setModalHeader(body) }
 
   async function onAODClick() { 
     setIsOpen(!isOpen);
     if (!isOpen) {
-      await getRandomAnimal().then((res) => {
-        // console.log(res.results)
-          getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
+      if (localStorage.getItem('parks')) {
+        const parks = JSON.parse(localStorage.getItem('parks'));
+        const aod = JSON.parse(parks.animal)
+        const today = new Date();
+        const todaysDate = today.getMonth() + "/" + today.getFullYear();
+
+        if (todaysDate === parks.date) {
+          setSpeciesName(aod.CommonName);
+          category.current = aod.Category;
+          family.current = aod.Family
+          scientificName.current = aod.ScientificName;
+          order.current = aod.SpeciesOrder;
+  
+          getParksBySpecies(1, aod.ScientificName).then((parks) => {
             const temp = [];
            parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
            setFoundInParks(temp);
           });
+          return;
+        }
+      } 
+      await getRandomAnimal().then((res) => {
+        // console.log(res.results)
+          getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
+            const temp = [];
+            parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
+            setFoundInParks(temp);
+          });
         
-         setSpeciesName(res.results[0].CommonName);
-         category.current = res.results[0].Category;
-         family.current = res.results[0].Family
-         scientificName.current = res.results[0].ScientificName;
-         order.current = res.results[0].SpeciesOrder;
-       }); 
+          setSpeciesName(res.results[0].CommonName);
+          category.current = res.results[0].Category;
+          family.current = res.results[0].Family
+          scientificName.current = res.results[0].ScientificName;
+          order.current = res.results[0].SpeciesOrder;
+
+          const today = new Date();
+          localStorage.setItem('parks', JSON.stringify({date: today.getMonth() +"/"+ today.getFullYear(), 
+          animal: JSON.stringify(res.results[0])}));
+        }); 
     }
   }
 
@@ -112,8 +138,8 @@ function HomePage() {
       </Box>
 
       <Box bgColor="#FFFFF" position="absolute" >
-        {!showModal && <PopoverForm setShowModal={handleSetShowModal} getResults={handleSetRecParks}/>}
-        {showModal && <RPModal setShowModal={handleSetShowModal} results={recommendedParks}/>}
+        {!showModal && <PopoverForm setShowModal={handleSetShowModal} setModalHeader={handleSetModalHeader} getResults={handleSetRecParks}/>}
+        {showModal && <RPModal setShowModal={handleSetShowModal} modalHeader={modalHeader} results={recommendedParks}/>}
       </Box>
 
       <Text fontWeight="bold" fontSize="15px" position="absolute" left={1} bottom={0} color="#ebe534"> Sequoia National Park, CA </Text>

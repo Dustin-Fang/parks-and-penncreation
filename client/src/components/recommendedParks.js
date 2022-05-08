@@ -1,19 +1,13 @@
 import {
-  Button,
-  ModalOverlay,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
   Box,
   Text,
+  Heading,
   CloseButton
 } from '@chakra-ui/react';
 import React from 'react';
 
-function RPModal({ setShowModal, results }) {
-  console.log(results)
+function RPModal({ setShowModal, modalHeader, results }) {
+  // console.log(results)
   if (!results.length) {
   return (
     <Box bgColor="white" width="500px" height="500px">
@@ -24,18 +18,12 @@ function RPModal({ setShowModal, results }) {
   )} else { 
   return (
     <Box bgColor="white" width="500px" height="500px">
-    <Text> We thought you would love these parks</Text> 
+    <Heading> {modalHeader}</Heading> 
     <CloseButton onClick={() => {setShowModal(false)}} />
-    { results.map(park => console.log(park.ParkName))}
+
+    { results.map(park => <Text key={park.ParkName}> {park.ParkName}, {park.State.split(',')[0]} </Text>)}
+   
     </Box>
-
-    // <Box bgColor="white" width="500px" height="500px">
-    // <Text fontWeight="bold" fontSize="15px"> We thought you would love these parks </Text>
-    
-
-    // <CloseButton onClick={() => {setShowModal(false)}} />
-    // </Box>
-  
   )}
 }
 
