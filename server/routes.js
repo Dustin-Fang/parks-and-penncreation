@@ -71,7 +71,7 @@ async function getParks(req, res) {
       if (whereClause) {
         whereClause += `AND `;
       }
-      whereClause += `P.State = '${req.body.State}'`;
+      whereClause += `P.State LIKE '%${req.body.State}%'`;
     }
   }
 
@@ -143,25 +143,27 @@ async function getAllSpecies(req, res) {
 // Route 2
 // get a species or species by common name, scientific name, zip code, or state
 async function getSpecies(req, res) {
-  let whereClause;
-  let fromClause;
+  let query;
 
   if (req.query.commonName) {
-    fromClause = `Species S, CommonNames CN`;
-    whereClause = `CN.CommonName = '${req.query.commonName}' AND S.SpeciesID = CN.SpeciesID;`;
-
+    // returns the information for species with the given commonname
+    query = `SELECT * 
+            FROM Species S JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
+            WHERE CN.CommonName = '${req.query.commonName}';`
   } else if (req.query.scientificName) {
-    fromClause = `Species S`;
-    whereClause = `S.ScientificName = '${req.query.scientificName}';`
-
+    // TODO: Ask if they want this to return all instances of moose in multiple parks
+    // get's all instances of this species
+    query = `SELECT *
+            FROM Species S
+            WHERE S.ScientificName = '${req.query.scientificName}';`
   } else if (req.query.zipcode) {
-    fromClause = `Species S, Zipcode Z`;
-    whereClause = `Z.Zipcode = ${req.query.zipcode} AND Z.ParkID = S.ParkId;`
-
+    query = `SELECT S.*
+            FROM Species S JOIN Parks P on S.ParkId = P.ParkId JOIN Zipcode Z on P.ParkId = Z.ParkId
+            WHERE Z.Zipcode = '${req.query.zipcode}'`
   } else if (req.query.state) {
-    fromClause = `Species S, Parks P, WeatherEvents W`;
-    whereClause = `ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - 
-      P.Longitude) <= 1.0 AND W.WeatherState = '${req.query.state}' AND P.ParkID = S.ParkID;`
+    query = `SELECT S.*
+            FROM Species S JOIN Parks P on S.ParkId = P.ParkId
+            WHERE P.State LIKE '%${req.query.state}%';`
   } else { // return a random aninmal
     connection.query(`
     SELECT S.SpeciesId, S.Category, S.SpeciesOrder,
@@ -187,10 +189,7 @@ async function getSpecies(req, res) {
     return;
   }
 
-  connection.query(`
-  SELECT S.*
-  FROM ${fromClause}
-  WHERE ${whereClause}`,
+  connection.query(`${query}`,
     function (error, results) {
       if (error) {
         // console.error(error)
