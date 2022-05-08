@@ -339,51 +339,29 @@ WHERE StartTime LIKE '2021%'; # 1m 17s, 1,200,000+ rows
 
 using this table, my query then takes ~30seconds
 
-WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
+WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
     FROM filteredEvents fe
     JOIN Parks p on
     ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
 ),
      totals AS (
-         SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT
+         SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
          FROM filtered
          GROUP BY ParkName
      ),
      goodEvents AS (
-        SELECT totals.ParkName, CT, totalGood / CT as goodAvg
+        SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
         FROM totals JOIN
             (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered WHERE WeatherType='Rain' GROUP BY ParkName) x
                 ON x.ParkName=totals.ParkName)
 
-        SELECT goodEvents.ParkName, PercentBad / CT as badAvg, goodAvg
+        SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
         FROM goodEvents JOIN
             (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered WHERE WeatherType='Snow' GROUP BY ParkName) y
                 ON goodEvents.ParkName = y.ParkName
-        HAVING badAvg < 0.3 AND goodAvg > 0.3; 
+        HAVING badAvg < 0.3 AND goodAvg > 0.3;
         
-        
-        
-ATTEMPT 5! 
-Using further advice from Rajvi, I was able to decrease the query by 3s using nested WITH AS statements.
 
-~27s 
-
-WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
-    FROM filteredEvents fe JOIN Parks p
-    ON ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
-)
-    SELECT percentGood.ParkName, totalBad / CT as badAvg, goodAvg
-    FROM (SELECT good.ParkName, CT, totalGood / CT as goodAvg
-        FROM
-             (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
-                 JOIN
-             (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered WHERE WeatherType='Fog' GROUP BY ParkName) good
-        ON good.ParkName=totals.ParkName) percentGood
-        JOIN
-        (SELECT ParkName, COUNT(EventId) as totalBad FROM filtered WHERE WeatherType='Snow' GROUP BY ParkName) bad
-    ON percentGood.ParkName = bad.ParkName
-    HAVING badAvg < 0.3 AND goodAvg > 0.3; #27s
-
-
-I also tried using cross product instead of a JOIN in the longitude/latitude calculations, but this increased the query slightly, so I have settled on attempt 5.
+I also tried using cross product instead of a JOIN in the longitude/latitude calculations, but this increased the query slightly.
+My query time was also increased when I tried using nested joins, so I decided to stick with Attempt 4.
 
