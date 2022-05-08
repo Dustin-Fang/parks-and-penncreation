@@ -45,6 +45,7 @@ export const getParksFunFact = async (id) => {
     await fetch(`http://${config.server_host}:${config.server_port}/parks/funfact/${id}`, {
       method: 'GET',
     });
+  console.log(id);
   return response.json();
 }
 

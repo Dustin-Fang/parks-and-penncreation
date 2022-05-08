@@ -23,10 +23,15 @@ import {
 } from 'antd'
 
 import NavBar from '../components/NavBar';
-import { getParksSearch, getPark, getSpeciesByPark, getMostWeatherSpecies } from '../fetcher' //getParksFunFact,
+import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeatherSpecies } from '../fetcher'
 
 const { Column } = Table; //, ColumnGroup
 const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm'];
+const parkFunFacts = [
+    'This park has the largest number of different species!',
+    'This park has the highest number of endangered/threatened species!',
+    'This park has the highest number of endangered/threatened species in its state'
+];
 
 class ParksPage extends React.Component {
 
@@ -55,6 +60,7 @@ class ParksPage extends React.Component {
         this.handleRadioButtonClick = this.handleRadioButtonClick.bind(this)
         this.setPark = this.setPark.bind(this)
         this.mostWeatherSearch = this.mostWeatherSearch.bind(this)
+        this.getFunFact = this.getFunFact.bind(this)
     }
 
 
@@ -108,18 +114,21 @@ class ParksPage extends React.Component {
         })
     }
 
+    async getFunFact() {
+        var rndNum = Math.floor(Math.random() * 3) + 1;
+        getParksFunFact(rndNum).then(res => {
+            console.log(res)
+            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum]})
+        })
+    }
+
     async componentDidMount() {
-        //var rndNum = Math.floor(Math.random() * 3) + 1;
         getPark(this.state.selectedParkId).then(res => {
             this.setState({ selectedParkDetails: res.results[0] })
         })
         getSpeciesByPark(1, this.state.selectedParkId).then(res => {
             this.setState({ speciesResults: res.results, speciesPage: 1 })
         })
-        // getParksFunFact(rndNum).then(res => {
-        //     console.log(res)
-        //     this.setState({ funFactPark: res.results[0] })
-        // })
     }
 
     render() {
@@ -226,6 +235,17 @@ class ParksPage extends React.Component {
                                 <Text fontSize="20px" fontWeight="semibold">
                                     Search for a Random Fun Fact!
                                 </Text>
+                                <Button onClick={this.getFunFact} colorScheme='green'>Search</Button>
+                                {this.state.funFactPark ?
+                                    <Stack>
+                                        <HStack>
+                                            <Text fontWeight="semibold">Park name:</Text>
+                                            <Text>{this.state.funFactPark}</Text>
+                                        </HStack>
+                                        <Text fontWeight="semibold">Fun fact:</Text>
+                                        <Text>{this.state.funFactPrompt}</Text>
+                                    </Stack>
+                                    : null}
                             </Stack>
                         </Box>
 
@@ -233,14 +253,14 @@ class ParksPage extends React.Component {
                             <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a particular park?</Text>
                             <FormControl as='fieldset'>
                                 <FormLabel >Weather Type</FormLabel>
-                                <RadioGroup onClick={ this.handleRadioButtonClick }>
+                                <RadioGroup onClick={this.handleRadioButtonClick}>
                                     {weatherEvents.map((event) =>
                                         <Radio key={event + "1"} value={event}>{event}</Radio>
                                     )}
 
                                 </RadioGroup>
                             </FormControl>
-                            <Button onClick={ this.mostWeatherSearch } colorScheme='green'>
+                            <Button onClick={this.mostWeatherSearch} colorScheme='green'>
                                 Search
                             </Button>
                             <Text fontWeight="semibold">Species in the park with the highest occurence of your selected event (Click table to see next page):</Text>
