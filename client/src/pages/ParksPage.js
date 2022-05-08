@@ -23,14 +23,14 @@ import {
 } from 'antd'
 
 import NavBar from '../components/NavBar';
-import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeatherSpecies } from '../fetcher'
+import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeatherSpecies, postParksWeatherSearch } from '../fetcher'
 
 const { Column } = Table; //, ColumnGroup
-const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm'];
+const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
 const parkFunFacts = [
     'This park has the largest number of different species!',
     'This park has the highest number of endangered/threatened species!',
-    'This park has the highest number of endangered/threatened species in its state'
+    'This park has the highest number of endangered/threatened species in California.'
 ];
 
 class ParksPage extends React.Component {
@@ -50,7 +50,11 @@ class ParksPage extends React.Component {
             funFactPrompt: '',
             weatherEventQuery: '',
             weatherSpeciesPage: 1,
-            weatherSpeciesResults: []
+            weatherSpeciesResults: [],
+            weatherZipcodeQuery: '',
+            startMonthQuery: '',
+            endMonthQuery: '',
+            weatherResults: []
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -61,6 +65,10 @@ class ParksPage extends React.Component {
         this.setPark = this.setPark.bind(this)
         this.mostWeatherSearch = this.mostWeatherSearch.bind(this)
         this.getFunFact = this.getFunFact.bind(this)
+        this.handleWeatherZipcodeQueryChange = this.handleWeatherZipcodeQueryChange.bind(this)
+        this.handleStartMonthQueryChange = this.handleStartMonthQueryChange.bind(this)
+        this.handleEndMonthQueryChange = this.handleEndMonthQueryChange.bind(this)
+        this.updateWeatherSearchResults = this.updateWeatherSearchResults.bind(this)
     }
 
 
@@ -78,6 +86,18 @@ class ParksPage extends React.Component {
 
     handleRadioButtonClick(event) {
         this.setState({ weatherEventQuery: event.target.value })
+    }
+
+    handleWeatherZipcodeQueryChange(event) {
+        this.setState({ weatherZipcodeQuery: event.target.value })
+    }
+
+    handleStartMonthQueryChange(event) {
+        this.setState({ startMonthQuery: event.target.value })
+    }
+
+    handleEndMonthQueryChange(event) {
+        this.setState({ endMonthQuery: event.target.value })
     }
 
     async setPark(parkId) {
@@ -114,12 +134,18 @@ class ParksPage extends React.Component {
         })
     }
 
+    async updateWeatherSearchResults() {
+        console.log(this.state)
+        postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
+            this.setState({ weatherResults: res.results })
+        })
+    }
+
     async getFunFact() {
-        var rndNum = Math.floor(Math.random() * 2) + 1;
-        // TODO: Make #3 work and change the above to 3
+        var rndNum = Math.floor(Math.random() * 3) + 1;
         getParksFunFact(rndNum).then(res => {
             console.log(res)
-            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum-1]})
+            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum - 1] })
         })
     }
 
@@ -137,7 +163,7 @@ class ParksPage extends React.Component {
             <VStack backgroundColor="#4E7C50">
                 <Flex
                     width="100wh"
-                    height="90vh"
+                    height="80vh"
                     justifyContent="center"
                     alignItems="center"
                     backgroundColor="#4E7C50"
@@ -226,8 +252,30 @@ class ParksPage extends React.Component {
                         <Box bg="#A7C193" width="100%" height="600px">
                             <Stack>
                                 <Text fontSize="20px" fontWeight="semibold">
-                                    Search for a Weather Events from 2021
+                                    Most Common Weather Events from 2021
                                 </Text>
+                                <FormControl as='fieldset' paddingBottom="15px">
+
+                                    <HStack padding={0}>
+                                        <Stack padding={0}><FormLabel spacing={0}>Zipcode</FormLabel>
+                                            <Input spacing={0} placeholder="4609" value={this.state.weatherZipcodeQuery} onChange={this.handleWeatherZipcodeQueryChange} bg="A7C193" variant='outline' /></Stack>
+
+                                        <Stack padding={0}><FormLabel spacing={0}>Start Month</FormLabel>
+                                            <Input spacing={0} placeholder="1" value={this.state.startMonthQuery} onChange={this.handleStartMonthQueryChange} bg="A7C193" variant='outline' /></Stack>
+
+                                        <Stack padding={0}><FormLabel spacing={0}>End Month</FormLabel>
+                                            <Input spacing={0} placeholder="12" value={this.state.endMonthQuery} onChange={this.handleEndMonthQueryChange} bg="A7C193" variant='outline' /></Stack>
+
+                                    </HStack>
+
+                                </FormControl>
+                                <Button colorScheme='green' onClick={this.updateWeatherSearchResults}>Search</Button>
+                                {this.state.weatherResults ?
+                                    <Table spacing={0} padding={0} dataSource={this.state.weatherResults} pagination={false}>
+                                        <Column title="Weather Type" dataIndex="WeatherType" key="WeatherType"></Column>
+                                        <Column title="Total Time" dataIndex="TotalTime" key="TotalTime"></Column>
+                                    </Table>
+                                    : null}
                             </Stack>
                         </Box>
 
@@ -276,14 +324,7 @@ class ParksPage extends React.Component {
                                 : null}
                         </Box>
                     </HStack>
-
                 </Flex>
-
-                {/* <Box bg="#A7C193" width="80%" height="100%" >
-                    <Text fontSize="20px" fontWeight="semibold">Fun Fact about {this.state.funFactPark}:</Text>
-                    <Text>{this.state.funFactPrompt}</Text>
-                </Box> */}
-
             </VStack>
         );
     }

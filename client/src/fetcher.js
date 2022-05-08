@@ -65,7 +65,26 @@ export const getMostWeatherSpecies = async (pageNumber, weatherType) => {
   return response.json();
 }
 
+export const postParksWeatherSearch = async (zipcode, startMonth, endMonth) => {
+  const responseBody = {
+    zipcode: zipcode,
+    startMonth: startMonth,
+    endMonth: endMonth
+  };
+  const inputJSON = JSON.stringify(responseBody);
 
+  console.log("Start month: ", startMonth);
+  const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/parks/weatherByRange`, {
+      method: "POST",
+      body: inputJSON,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  // console.log(response.json())
+  return response.json();
+}
 
 
 
