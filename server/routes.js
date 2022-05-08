@@ -261,9 +261,11 @@ async function speciesByPark(req, res) {
   const offset = (pageNumber - 1) * pagesize
 
   connection.query(`
-  SELECT S.SpeciesId AS SpeciesId, S.Category AS Category, S.SpeciesOrder AS SpeciesOrder, S.Family AS Family, S.ScientificName AS ScientificName, S.RecordStatus AS RecordStatus, S.Occurrence as Occurrence, S.Nativeness AS Nativeness, S.Abundance AS Abundance, S.Seasonality AS Seasonality, S.ConservationStatus AS ConservationStatus
-  FROM Parks P JOIN Species S ON P.ParkId = S.ParkId
-  WHERE P.ParkId = '${parkId}'
+  SELECT S.ScientificName AS ScientificName, S.Nativeness AS Nativeness, S.Abundance AS Abundance, CN.CommonName AS CommonName
+  FROM (SELECT ParkId FROM Parks WHERE ParkId = '${parkId}') P
+  JOIN (SELECT ScientificName, Nativeness, Abundance, SpeciesId, ParkId FROM Species) S ON P.ParkId = S.ParkId
+  JOIN (SELECT CommonName, SpeciesId FROM CommonNames) CN ON S.SpeciesId = CN.SpeciesId
+  WHERE S.Abundance IS NOT NULL OR S.Abundance <> ''
   ORDER BY S.Abundance
   LIMIT ${pagesize} OFFSET ${offset};
   `,
