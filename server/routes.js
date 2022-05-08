@@ -48,6 +48,7 @@ async function getAllParks(req, res) {
   });
 }
 
+// Route 1
 // get a park or parks by name, zipcode, and/or state
 async function getParks(req, res) {
   let whereClause = ``;
@@ -139,6 +140,7 @@ async function getAllSpecies(req, res) {
   });
 }
 
+// Route 2
 // get a species or species by common name, scientific name, zip code, or state
 async function getSpecies(req, res) {
   let whereClause;
@@ -201,6 +203,7 @@ async function getSpecies(req, res) {
     });
 }
 
+// Route 3
 // get all parks containing a species or species by common name, scientific name
 async function getParksBySpecies(req, res) {
   let fromClause;
@@ -380,8 +383,9 @@ async function speciesWeatherEvents(req, res) {
     return res.status(404).json({ error: 'No required info entered.' });
   }
 
+  // if a common name isn't provded
   if (commonName.length > 0) {
-    //then find with that id
+    // first do a speciesId search with the common name
     connection.query(`
     WITH SpeciesSubset AS (
       SELECT S.ParkId AS ParkId
@@ -516,6 +520,7 @@ async function recommendPark(req, res) {
     hasBadClause = true;
   }
 
+  // this runs when a type is provided for both
   if (hasBadClause && hasGoodClause) {
     connection.query(`
     WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
@@ -551,6 +556,7 @@ async function recommendPark(req, res) {
         }
       });
   } else if (hasBadClause && !hasGoodClause) {
+    // runs when only bad event is provided
     connection.query(`
     WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
       FROM filteredEvents fe
@@ -585,6 +591,7 @@ async function recommendPark(req, res) {
         }
       });
   } else if (!hasBadClause && hasGoodClause) {
+    // runs when only a good event is provided
     connection.query(`
     WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
       FROM filteredEvents fe
