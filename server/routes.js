@@ -153,20 +153,21 @@ async function getSpecies(req, res) {
             LIMIT 10;`
   } else if (req.query.scientificName) {
     // returns the species (which may be in different parks) with a given scientific name
-    query = `SELECT *
-            FROM Species S
+    query = `SELECT S.*, CN.CommonName
+            FROM Species S JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
             WHERE S.ScientificName = '${req.query.scientificName}'
             LIMIT 10;`
   } else if (req.query.zipcode) {
     // returns the species (which may be in different parks) in a given zipcode
-    query = `SELECT S.*
+    query = `SELECT S.*, CN.CommonName
             FROM Species S JOIN Parks P on S.ParkId = P.ParkId JOIN Zipcode Z on P.ParkId = Z.ParkId
+              JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
             WHERE Z.Zipcode = '${req.query.zipcode}'
             LIMIT 10`
   } else if (req.query.state) {
     // returns the species (which may be in different parks) in a given state
-    query = `SELECT S.*
-            FROM Species S JOIN Parks P on S.ParkId = P.ParkId
+    query = `SELECT S.*, CN.CommonName
+            FROM Species S JOIN Parks P on S.ParkId = P.ParkId JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
             WHERE P.State LIKE '%${req.query.state}%'
             LIMIT 10;`
   } else { // return a random aninmal
