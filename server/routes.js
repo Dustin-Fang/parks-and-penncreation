@@ -146,22 +146,25 @@ async function getSpecies(req, res) {
   let query;
 
   if (req.query.commonName) {
-    // returns the information for species with the given commonname
+    // returns the species (which may be in different parks) with the given commonName
     query = `SELECT * 
             FROM Species S JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
             WHERE CN.CommonName = '${req.query.commonName}'
             LIMIT 10;`
   } else if (req.query.scientificName) {
+    // returns the species (which may be in different parks) with a given scientific name
     query = `SELECT *
             FROM Species S
             WHERE S.ScientificName = '${req.query.scientificName}'
             LIMIT 10;`
   } else if (req.query.zipcode) {
+    // returns the species (which may be in different parks) in a given zipcode
     query = `SELECT S.*
             FROM Species S JOIN Parks P on S.ParkId = P.ParkId JOIN Zipcode Z on P.ParkId = Z.ParkId
             WHERE Z.Zipcode = '${req.query.zipcode}'
             LIMIT 10`
   } else if (req.query.state) {
+    // returns the species (which may be in different parks) in a given state
     query = `SELECT S.*
             FROM Species S JOIN Parks P on S.ParkId = P.ParkId
             WHERE P.State LIKE '%${req.query.state}%'
@@ -338,8 +341,14 @@ async function parkHighestOccurrenceWeather(req, res) {
   if (!req.query.weatherType) {
     return res.status(404).json({ error: 'No weather type entered.' });
   }
-
-  const weatherType = req.query.weatherType;
+  let weatherType;
+  // fix, since 'Precipitation' is truncated to 'Precipit' in the db
+  if (req.query.weatherType === 'Precipitation') {
+    weatherType = 'Precipit';
+  } else {
+    weatherType = req.query.weatherType;
+  }
+  
   const pageNumber = req.params.pageNumber ? req.params.pageNumber : 1;
   // page 10 -> should skip the first 45 tuples
   const offset = (pageNumber - 1) * pagesize
@@ -383,6 +392,8 @@ async function speciesWeatherEvents(req, res) {
   } else {
     return res.status(404).json({ error: 'No required info entered.' });
   }
+
+  // These queries aggregate all the weather events experienced by a species grouped by WeatherType
 
   // if a common name isn't provded
   if (commonName.length > 0) {
@@ -502,8 +513,8 @@ async function mostLikelyWeather(req, res) {
 // Route 10
 async function recommendPark(req, res) {
   // Take in at most one weather type per input
-  const undesirableEvents = req.body.undesirableEvents ? req.body.undesirableEvents : '';
-  const desirableEvents = req.body.desirableEvents ? req.body.desirableEvents : '';
+  let undesirableEvents = req.body.undesirableEvents ? req.body.undesirableEvents : '';
+  let desirableEvents = req.body.desirableEvents ? req.body.desirableEvents : '';
 
   // default these to the empty string if empty string params are given
   let whereClauseGood = ''
@@ -512,11 +523,19 @@ async function recommendPark(req, res) {
   let hasBadClause = false;
   // generate then where clauses for each array
   if (desirableEvents.length > 0) {
+    // fix, since 'Precipitation' is truncated to 'Precipit' in the db
+    if (desirableEvents === 'Precipitation') {
+      desirableEvents = 'Precipit';
+    }
     whereClauseGood = `WHERE WeatherType='${desirableEvents}'`
     hasGoodClause = true;
   }
 
   if (undesirableEvents.length > 0) {
+    // fix, since 'Precipitation' is truncated to 'Precipit' in the db
+    if (undesirableEvents === 'Precipitation') {
+      undesirableEvents = 'Precipit';
+    }
     whereClauseBad = `WHERE WeatherType='${undesirableEvents}'`
     hasBadClause = true;
   }

@@ -38,9 +38,10 @@ CREATE TABLE Species (
 );
 
 CREATE TABLE CommonNames (
+    nameId              int
     CommonName          varchar(64),
     SpeciesId           varchar(9),
-    PRIMARY KEY (CommonName),
+    PRIMARY KEY (nameId),
     FOREIGN KEY (SpeciesId) REFERENCES Species(SpeciesId)
 );
 
