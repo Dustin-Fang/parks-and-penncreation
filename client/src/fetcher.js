@@ -14,7 +14,6 @@ export const getPark = async (parkId) => {
         "Content-Type": "application/json",
       },
     });
-  //console.log(response.json())
   return response.json();
 }
 
@@ -36,7 +35,6 @@ export const getParksSearch = async (parkName, zipcode, state, page, pagesize) =
         "Content-Type": "application/json",
       },
     });
-  // console.log(response.json())
   return response.json();
 }
 
@@ -65,7 +63,24 @@ export const getMostWeatherSpecies = async (pageNumber, weatherType) => {
   return response.json();
 }
 
+export const postParksWeatherSearch = async (zipcode, startMonth, endMonth) => {
+  const responseBody = {
+    zipcode: zipcode,
+    startMonth: startMonth,
+    endMonth: endMonth
+  };
+  const inputJSON = JSON.stringify(responseBody);
 
+  const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/parks/weatherByRange`, {
+      method: "POST",
+      body: inputJSON,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  return response.json();
+}
 
 
 

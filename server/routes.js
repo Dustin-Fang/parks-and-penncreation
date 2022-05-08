@@ -482,9 +482,9 @@ async function mostLikelyWeather(req, res) {
   const lowerLng = zipCoordsObj.LNG - areaHalfWidth
   const upperLng = zipCoordsObj.LNG + areaHalfWidth
 
-  // default to only january
+  // default to year round
   const startMonth = req.body.startMonth ? req.body.startMonth : 1;
-  const endMonth = req.body.endMonth ? req.body.endMonth : 1;
+  const endMonth = req.body.endMonth ? req.body.endMonth : 12;
 
   if (endMonth < startMonth) {
     return res.status(404).json({ error: 'Invalid time range.' });
