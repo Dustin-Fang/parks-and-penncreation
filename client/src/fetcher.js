@@ -170,7 +170,6 @@ export const getSpecies = async (input) => {
 }
 
 export const getSpeciesWeather = async (input) => {
-  console.log(input)
   if (input.commonName) {
     const response =
     await fetch(`http://${config.server_host}:${config.server_port}/species/weather?commonName=${input.commonName}`, {
@@ -186,3 +185,21 @@ export const getSpeciesWeather = async (input) => {
     return response.json();
   } 
 }
+
+export const getSpeciesData = async (zipcode, category) => {
+  const inpts = {
+    speciesCategory: category,
+    zipcode: zipcode,
+  };
+  const inputJSON = JSON.stringify(inpts);
+  
+  const response =
+  await fetch(`http://${config.server_host}:${config.server_port}/species/data`, {
+    method: 'POST',
+    body: inputJSON,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+  } 

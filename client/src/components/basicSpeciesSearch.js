@@ -60,7 +60,7 @@ const Form = ({ setResults }) => {
 
 
     <FormLabel > Zipcode </FormLabel>
-    <Input id="Zip"  onChange={handleinputChange}  bg="A7C193" variant='outline' placeholder='4609' /> 
+    <Input id="Zip"  onChange={handleinputChange}  bg="A7C193" variant='outline' placeholder='04609' /> 
 
     <FormLabel > State </FormLabel>
     <Input id="State" onChange={handleinputChange}   bg="A7C193" variant='outline' placeholder='CO' /> 
