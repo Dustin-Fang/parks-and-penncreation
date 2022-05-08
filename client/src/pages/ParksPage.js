@@ -347,7 +347,7 @@ class ParksPage extends React.Component {
 
                         <Box bg="#A7C193" width="100%" height="600px" padding={5}>
                             <Stack>
-                                <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a park?</Text>
+                                <Text fontSize="20px" fontWeight="semibold">What species live in the park with the highest amount of a certain weather event?</Text>
                                 <FormControl as='fieldset'>
                                     <RadioGroup onClick={this.handleRadioButtonClick}>
                                         <HStack spacing={2}>
