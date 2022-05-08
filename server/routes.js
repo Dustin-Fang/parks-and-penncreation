@@ -275,15 +275,10 @@ async function speciesTotalWeather(req, res) {
   const zipcode = req.body.zipcode
   // needs area range
   const zipCoordsObj = getCoords(zipcode);
-  const lowerLatitude = zipCoordsObj.LAT - areaHalfWidth
-  const upperLatitude = zipCoordsObj.LAT + areaHalfWidth
-  const lowerLongitude = zipCoordsObj.LNG - areaHalfWidth
-  const upperLongitude = zipCoordsObj.LNG + areaHalfWidth
-  console.log(zipCoordsObj)
-  console.log(lowerLatitude)
-  console.log(upperLatitude)
-  console.log(lowerLongitude)
-  console.log(upperLongitude)
+  const lowerLat = zipCoordsObj.LAT - areaHalfWidth
+  const upperLat = zipCoordsObj.LAT + areaHalfWidth
+  const lowerLng = zipCoordsObj.LNG - areaHalfWidth
+  const upperLng = zipCoordsObj.LNG + areaHalfWidth
 
   const speciesCategory = req.body.speciesCategory;
   // default to only january
@@ -307,21 +302,22 @@ async function speciesTotalWeather(req, res) {
       SELECT P.ParkID, P.Latitude, P.Longitude
       FROM Parks P
   ), joinedParkSpecies AS (
-      SELECT SS.Category, PS.Latitude, PS.Longitude
+      SELECT SS.Category
       FROM speciesSubset SS JOIN parkSubset PS ON PS.ParkID = SS.ParkID
+      WHERE PS.Latitude >= ${lowerLat} AND PS.Latitude <= ${upperLat}
+          AND PS.Longitude >= ${lowerLng} AND PS.Longitude <= ${upperLng}
   ), joinedAllSubset AS (
       SELECT JPS.Category, WS.WeatherType, WS.Duration
-      FROM joinedParkSpecies JPS JOIN filteredEvents WS ON
-          WS.Latitude >= ${lowerLatitude} AND WS.Latitude <= ${upperLatitude}
-          AND WS.Longitude >= ${lowerLongitude} AND WS.Longitude <= ${upperLongitude} AND
-          JPS.Latitude <= 1.0 + WS.Latitude AND JPS.Latitude >= WS.Latitude - 1.0 AND
-          JPS.Longitude <= 1.0 + WS.Longitude AND JPS.Longitude >= WS.Longitude - 1.0 AND
-          (EXTRACT(MONTH FROM WS.StartTime) BETWEEN ${startMonth} AND ${endMonth}) 
-          AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN ${startMonth} AND ${endMonth})
+      FROM joinedParkSpecies JPS JOIN
+          (SELECT WeatherType, Duration, Latitude, Longitude, StartTime, EndTime FROM filteredEvents) WS
+      WHERE WS.Latitude >= ${lowerLat} AND WS.Latitude <= ${upperLat}
+          AND WS.Longitude >= ${lowerLng} AND WS.Longitude <= ${upperLng} AND
+          (EXTRACT(MONTH FROM WS.StartTime) BETWEEN 1 AND 12)
+          AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN 1 AND 12)
   )
   SELECT JAS.Category, JAS.WeatherType, SUM(JAS.Duration) as TotalTime
   FROM joinedAllSubset as JAS
-  GROUP BY JAS.Category, JAS.WeatherType
+  GROUP BY JAS.WeatherType
   ORDER BY TotalTime DESC;
   `,
     function (error, results) {
@@ -464,27 +460,14 @@ async function mostLikelyWeather(req, res) {
   const zipcode = req.body.zipcode
   // needs area range
   const zipCoordsObj = getCoords(zipcode);
-  const lowerLatitude = zipCoordsObj.LAT - areaHalfWidth
-  const upperLatitude = zipCoordsObj.LAT + areaHalfWidth
-  const lowerLongitude = zipCoordsObj.LNG - areaHalfWidth
-  const upperLongitude = zipCoordsObj.LNG + areaHalfWidth
-  console.log(zipCoordsObj)
-  console.log(lowerLatitude)
-  console.log(upperLatitude)
-  console.log(lowerLongitude)
-  console.log(upperLongitude)
-  
+  const lowerLat = zipCoordsObj.LAT - areaHalfWidth
+  const upperLat = zipCoordsObj.LAT + areaHalfWidth
+  const lowerLng = zipCoordsObj.LNG - areaHalfWidth
+  const upperLng = zipCoordsObj.LNG + areaHalfWidth
+
   // default to only january
   const startMonth = req.body.startMonth ? req.body.startMonth : 1;
   const endMonth = req.body.endMonth ? req.body.endMonth : 1;
-
-  if (lowerLatitude > upperLatitude) {
-    return res.status(404).json({ error: 'Invalid Latitude Range' });
-  }
-
-  if (lowerLongitude > upperLongitude) {
-    return res.status(404).json({ error: 'Invalid Longitude Range' });
-  }
 
   if (endMonth < startMonth) {
     return res.status(404).json({ error: 'Invalid time range.' });
@@ -494,8 +477,8 @@ async function mostLikelyWeather(req, res) {
   connection.query(`
   SELECT WS.WeatherType, SUM(WS.Duration) as TotalTime
   FROM filteredEvents WS
-  WHERE WS.Latitude >= ${lowerLatitude} AND WS.Latitude <= ${upperLatitude}
-        AND WS.Longitude >= ${lowerLongitude} AND WS.Longitude <= ${upperLongitude} AND
+  WHERE WS.Latitude >= ${lowerLat} AND WS.Latitude <= ${upperLat}
+        AND WS.Longitude >= ${lowerLng} AND WS.Longitude <= ${upperLng} AND
         (EXTRACT(MONTH FROM WS.StartTime) BETWEEN ${startMonth} AND ${endMonth}) 
         AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN ${startMonth} AND ${endMonth})
   GROUP BY WS.WeatherType

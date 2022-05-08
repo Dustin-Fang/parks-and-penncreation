@@ -120,6 +120,36 @@ FROM WeatherTypes WT
 GROUP BY WT.WeatherType
 ORDER BY COUNT(WT.WeatherType) DESC;
 
+(5/7/22)
+-- Optmization query attempt 4 (29s)
+Made changes to accomadate for new range searching
+
+WITH speciesSubset AS (
+    SELECT S.Category, S.ParkId
+    FROM Species S
+    WHERE S.Category = `${category}`
+  ), parkSubset AS (
+      SELECT P.ParkID, P.Latitude, P.Longitude
+      FROM Parks P
+  ), joinedParkSpecies AS (
+      SELECT SS.Category
+      FROM speciesSubset SS JOIN parkSubset PS ON PS.ParkID = SS.ParkID
+      WHERE PS.Latitude >= `${lowerLat}` AND PS.Latitude <= `${upperLat}`
+          AND PS.Longitude >= `${lowerLng}` AND PS.Longitude <= `${upperLng}`
+  ), joinedAllSubset AS (
+      SELECT JPS.Category, WS.WeatherType, WS.Duration
+      FROM joinedParkSpecies JPS JOIN
+          (SELECT WeatherType, Duration, Latitude, Longitude, StartTime, EndTime FROM filteredEvents) WS
+      WHERE WS.Latitude >= `${lowerLat}` AND WS.Latitude <= `${upperLat}`
+          AND WS.Longitude >= `${lowerLng}` AND WS.Longitude <= `${upperLng}` AND
+          (EXTRACT(MONTH FROM WS.StartTime) BETWEEN 1 AND 12)
+          AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN 1 AND 12)
+  )
+SELECT JAS.Category, JAS.WeatherType, SUM(JAS.Duration) as TotalTime
+FROM joinedAllSubset as JAS
+GROUP BY JAS.WeatherType
+ORDER BY TotalTime DESC;
+
 
 
 Gian's Query Optimization Log:
