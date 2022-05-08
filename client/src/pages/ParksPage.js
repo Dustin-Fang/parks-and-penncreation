@@ -55,7 +55,8 @@ class ParksPage extends React.Component {
             endMonthQuery: '',
             weatherResults: [],
             searchError: '',
-            weatherSearchError: ''
+            weatherSearchError: '',
+            radioButtonError: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -112,9 +113,14 @@ class ParksPage extends React.Component {
     }
 
     async mostWeatherSearch() {
-        getMostWeatherSpecies(1, this.state.weatherEventQuery).then(res => {
-            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1 })
-        })
+        if (!weatherEvents.includes(this.state.weatherEventQuery)) {
+            this.setState({ radioButtonError: "Please choose a weather event to search by."})
+        }
+        else {
+            getMostWeatherSpecies(1, this.state.weatherEventQuery).then(res => {
+                this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: 1, radioButtonError: '' })
+            })
+        }
     }
 
     async turnWeatherSpeciesPage() {
@@ -165,8 +171,7 @@ class ParksPage extends React.Component {
     }
 
     async getFunFact() {
-        var rndNum = Math.floor(Math.random() * 4) + 1;
-        if (rndNum > 3) rndNum = 3; // choose option 3 with a higher probability
+        var rndNum = Math.floor(Math.random() * 3) + 1;
         getParksFunFact(rndNum).then(res => {
             console.log(res)
             this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: res.prompt })
@@ -275,7 +280,7 @@ class ParksPage extends React.Component {
                     backgroundColor="#4E7C50"
                 >
                     <HStack position="absolute" padding={10} spacing="50px">
-                        <Box bg="#A7C193" width="100%" height="600px">
+                        <Box bg="#A7C193" width="100%" height="600px" padding={5}>
                             <Stack>
                                 <Text fontSize="20px" fontWeight="semibold">
                                     Most Common Weather Events from 2021
@@ -307,7 +312,7 @@ class ParksPage extends React.Component {
                             </Stack>
                         </Box>
 
-                        <Box bg="#A7C193" width="100%" height="600px">
+                        <Box bg="#A7C193" width="100%" height="600px" padding={5}>
                             <Stack>
                                 <Text fontSize="20px" fontWeight="semibold">
                                     Search for a Random Fun Fact!
@@ -326,10 +331,9 @@ class ParksPage extends React.Component {
                             </Stack>
                         </Box>
 
-                        <Box bg="#A7C193" width="100%" height="600px">
+                        <Box bg="#A7C193" width="100%" height="600px" padding={5}>
                             <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a park?</Text>
                             <FormControl as='fieldset'>
-                                <FormLabel >Weather Type</FormLabel>
                                 <RadioGroup onClick={this.handleRadioButtonClick}>
                                     {weatherEvents.map((event) =>
                                         <Radio key={event + "1"} value={event}>{event}</Radio>
@@ -340,6 +344,8 @@ class ParksPage extends React.Component {
                             <Button onClick={this.mostWeatherSearch} colorScheme='green'>
                                 Search
                             </Button>
+                            <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.radioButtonError} </Text>
+                            <Divider />
                             <Text fontWeight="semibold">Species in the park with the highest occurence of your selected event (Click table to see next page):</Text>
                             {this.state.weatherSpeciesResults ?
                                 <Table onRow={() => {
