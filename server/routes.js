@@ -149,21 +149,23 @@ async function getSpecies(req, res) {
     // returns the information for species with the given commonname
     query = `SELECT * 
             FROM Species S JOIN CommonNames CN ON S.SpeciesID = CN.SpeciesID
-            WHERE CN.CommonName = '${req.query.commonName}';`
+            WHERE CN.CommonName = '${req.query.commonName}'
+            LIMIT 10;`
   } else if (req.query.scientificName) {
-    // TODO: Ask if they want this to return all instances of moose in multiple parks
-    // get's all instances of this species
     query = `SELECT *
             FROM Species S
-            WHERE S.ScientificName = '${req.query.scientificName}';`
+            WHERE S.ScientificName = '${req.query.scientificName}'
+            LIMIT 10;`
   } else if (req.query.zipcode) {
     query = `SELECT S.*
             FROM Species S JOIN Parks P on S.ParkId = P.ParkId JOIN Zipcode Z on P.ParkId = Z.ParkId
-            WHERE Z.Zipcode = '${req.query.zipcode}'`
+            WHERE Z.Zipcode = '${req.query.zipcode}'
+            LIMIT 10`
   } else if (req.query.state) {
     query = `SELECT S.*
             FROM Species S JOIN Parks P on S.ParkId = P.ParkId
-            WHERE P.State LIKE '%${req.query.state}%';`
+            WHERE P.State LIKE '%${req.query.state}%'
+            LIMIT 10;`
   } else { // return a random aninmal
     connection.query(`
     SELECT S.SpeciesId, S.Category, S.SpeciesOrder,
