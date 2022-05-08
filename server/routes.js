@@ -2,6 +2,7 @@ const config = require('./config.json')
 const mysqlPkg = require('mysql');
 const expressPkg = require('express');
 const { parkFunFacts } = require('./parkFacts');
+const coords = require('./zipcodeToCoords.json');
 
 // connect to the db using the details in config
 const connection = mysqlPkg.createConnection({
@@ -15,6 +16,16 @@ connection.connect();
 
 // fixed number of tuple returns
 const pagesize = 5;
+
+// fixed size for area searchs about a zipcode
+const areaHalfWidth = 7.5;
+
+// get coords helper
+function getCoords(zipcode) {
+  return coords.find(item => {
+    return item.ZIP == zipcode
+  })
+}
 
 // root routes (shouldn't go here, only for debugging!)
 async function root(_req, res) {
@@ -258,23 +269,26 @@ async function speciesByPark(req, res) {
 
 // Route 5
 async function speciesTotalWeather(req, res) {
+  if (req.body.zipcode < 0) {
+    return res.status(404).json({ error: 'Invalid zipcode'})
+  }
+  const zipcode = req.body.zipcode
   // needs area range
-  const lowerLatitude = 0
-  const upperLatitude = 0
-  const lowerLongitude = 0
-  const upperLongitude = 0
+  const zipCoordsObj = getCoords(zipcode);
+  const lowerLatitude = zipCoordsObj.LAT - areaHalfWidth
+  const upperLatitude = zipCoordsObj.LAT + areaHalfWidth
+  const lowerLongitude = zipCoordsObj.LNG - areaHalfWidth
+  const upperLongitude = zipCoordsObj.LNG + areaHalfWidth
+  console.log(zipCoordsObj)
+  console.log(lowerLatitude)
+  console.log(upperLatitude)
+  console.log(lowerLongitude)
+  console.log(upperLongitude)
+
   const speciesCategory = req.body.speciesCategory;
   // default to only january
   const startMonth = req.body.startMonth ? req.body.startMonth : 1;
   const endMonth = req.body.endMonth ? req.body.endMonth : 1;
-
-  if (lowerLatitude > upperLatitude) {
-    return res.status(404).json({ error: 'Invalid Latitude Range' });
-  }
-
-  if (lowerLongitude > upperLongitude) {
-    return res.status(404).json({ error: 'Invalid Longitude Range' });
-  }
 
   if (!speciesCategory) {
     return res.status(404).json({ error: 'No species category specified.' });
@@ -299,7 +313,7 @@ async function speciesTotalWeather(req, res) {
       SELECT JPS.Category, WS.WeatherType, WS.Duration
       FROM joinedParkSpecies JPS JOIN filteredEvents WS ON
           WS.Latitude >= ${lowerLatitude} AND WS.Latitude <= ${upperLatitude}
-          AND WS.Longitude <= ${lowerLongitude} AND WS.Longitude >= ${upperLongitude} AND
+          AND WS.Longitude >= ${lowerLongitude} AND WS.Longitude <= ${upperLongitude} AND
           JPS.Latitude <= 1.0 + WS.Latitude AND JPS.Latitude >= WS.Latitude - 1.0 AND
           JPS.Longitude <= 1.0 + WS.Longitude AND JPS.Longitude >= WS.Longitude - 1.0 AND
           (EXTRACT(MONTH FROM WS.StartTime) BETWEEN ${startMonth} AND ${endMonth}) 
@@ -444,11 +458,22 @@ async function speciesWeatherEvents(req, res) {
 
 // Route 9:
 async function mostLikelyWeather(req, res) {
+  if (req.body.zipcode < 0) {
+    return res.status(404).json({ error: 'Invalid zipcode'})
+  }
+  const zipcode = req.body.zipcode
   // needs area range
-  const lowerLatitude = req.body.lowerLatitude;
-  const upperLatitude = req.body.upperLatitude;
-  const lowerLongitude = req.body.lowerLongitude;
-  const upperLongitude = req.body.upperLongitude;
+  const zipCoordsObj = getCoords(zipcode);
+  const lowerLatitude = zipCoordsObj.LAT - areaHalfWidth
+  const upperLatitude = zipCoordsObj.LAT + areaHalfWidth
+  const lowerLongitude = zipCoordsObj.LNG - areaHalfWidth
+  const upperLongitude = zipCoordsObj.LNG + areaHalfWidth
+  console.log(zipCoordsObj)
+  console.log(lowerLatitude)
+  console.log(upperLatitude)
+  console.log(lowerLongitude)
+  console.log(upperLongitude)
+  
   // default to only january
   const startMonth = req.body.startMonth ? req.body.startMonth : 1;
   const endMonth = req.body.endMonth ? req.body.endMonth : 1;
@@ -467,13 +492,13 @@ async function mostLikelyWeather(req, res) {
 
   // aggregate by duration
   connection.query(`
-  SELECT W.WeatherType, SUM(W.Duration) as TotalTime
-  FROM filteredEvents W
+  SELECT WS.WeatherType, SUM(WS.Duration) as TotalTime
+  FROM filteredEvents WS
   WHERE WS.Latitude >= ${lowerLatitude} AND WS.Latitude <= ${upperLatitude}
-        AND WS.Longitude <= ${lowerLongitude} AND WS.Longitude >= ${upperLongitude} AND
+        AND WS.Longitude >= ${lowerLongitude} AND WS.Longitude <= ${upperLongitude} AND
         (EXTRACT(MONTH FROM WS.StartTime) BETWEEN ${startMonth} AND ${endMonth}) 
         AND (EXTRACT(MONTH FROM WS.EndTime) BETWEEN ${startMonth} AND ${endMonth})
-  GROUP BY W.WeatherType
+  GROUP BY WS.WeatherType
   ORDER BY TotalTime DESC
   LIMIT 5;
   `,
