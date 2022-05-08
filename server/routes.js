@@ -59,7 +59,7 @@ async function getParks(req, res) {
   } 
   else {
     if (req.body.ParkName) {
-      whereClause = `P.ParkName = '${req.body.ParkName}'`;
+      whereClause = `P.ParkName LIKE '%${req.body.ParkName}%'`;
     }
     if (req.body.Zipcode) {
       if (whereClause) {
@@ -69,14 +69,14 @@ async function getParks(req, res) {
     }
     if (req.body.State) {
       if (whereClause) {
-        whereClause += `AND `;
+        whereClause += ` AND `;
       }
       whereClause += `P.State LIKE '%${req.body.State}%'`;
     }
   }
 
   if (!whereClause.length) {
-    res.status(404).json({ message: 'No zipcode, state, or name entered! ' + whereClause })
+    res.status(404).json({ message: 'No zipcode, state, or name entered! ' })
     return;
   }
 
@@ -86,7 +86,6 @@ async function getParks(req, res) {
   WHERE ${whereClause};`,
     function (error, results) {
       if (error) {
-        //console.error(error)
         res.status(404).json({ error: error })
       } else if (results) {
         res.status(200).json({ results: results })

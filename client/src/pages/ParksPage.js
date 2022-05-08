@@ -59,7 +59,8 @@ class ParksPage extends React.Component {
             weatherSearchError: '',
             radioButtonError: '',
             radioButtonLoadingMsg: '',
-            weatherLoadingMsg: ''
+            weatherLoadingMsg: '',
+            noDataMsg: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -142,14 +143,24 @@ class ParksPage extends React.Component {
 
     async updateSearchResults() {
         if (!allStates.includes(this.state.stateQuery)) {
-            this.setState({ searchError: "You can only search with valid two-letter state codes." })
+            this.setState({ searchError: "You can only search with valid two-letter state codes.", noDataMsg: '' })
         }
-        else if (isNaN(this.state.zipcodeQuery) || this.state.zipcodeQuery.length > 5) {
-            this.setState({ searchError: "Please enter a valid zipcode." })
+        else if (isNaN(this.state.zipcodeQuery) || this.state.zipcodeQuery.length > 5 || 
+        (this.state.zipcodeQuery.length < 4 && this.state.zipcodeQuery.length > 0)) {
+            this.setState({ searchError: "Please enter a valid zipcode.", noDataMsg: '' })
         }
         else {
+            console.log("Zip ", this.state.zipcodeQuery, "State ", this.state.stateQuery)
             getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-                this.setState({ parksResults: res.results, searchError: '' })
+                if (res.results.length) {
+                    this.setState({ parksResults: res.results, searchError: '', noDataMsg: '' })
+                }
+                else {
+                    this.setState({
+                        parksResults: res.results, searchError: '',
+                        noDataMsg: "Sorry! Looks like we don't have any data that matches your query."
+                    })
+                }
             })
         }
     }
@@ -230,6 +241,9 @@ class ParksPage extends React.Component {
                                 <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.searchError} </Text>
 
                                 <Divider />
+                                {this.state.noDataMsg ?
+                                    <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.noDataMsg} </Text>
+                                    : null}
                                 <Table onRow={(record) => {
                                     return {
                                         onClick: () => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
@@ -351,9 +365,9 @@ class ParksPage extends React.Component {
                                 <FormControl as='fieldset'>
                                     <RadioGroup onClick={this.handleRadioButtonClick}>
                                         <HStack spacing={2}>
-                                        {weatherEvents.map((event) =>
-                                            <Radio spacing={1} key={event + "1"} value={event}>{event}</Radio>
-                                        )}
+                                            {weatherEvents.map((event) =>
+                                                <Radio spacing={1} key={event + "1"} value={event}>{event}</Radio>
+                                            )}
                                         </HStack>
 
                                     </RadioGroup>
