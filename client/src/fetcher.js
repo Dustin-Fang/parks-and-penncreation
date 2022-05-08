@@ -56,7 +56,7 @@ export const getSpeciesByPark = async (pageNumber, ParkId) => {
   return response.json();
 }
 
-export const getMostWeatherSpecies = async (pageNumber, ParkId, weatherType) => {
+export const getMostWeatherSpecies = async (pageNumber, weatherType) => {
   const response =
     await fetch(`http://${config.server_host}:${config.server_port}/parks/mostWeatherSpecies/${pageNumber}?weatherType=${weatherType}`, {
       method: 'GET',

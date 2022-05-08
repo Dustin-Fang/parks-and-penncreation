@@ -92,7 +92,7 @@ class ParksPage extends React.Component {
 
     async turnWeatherSpeciesPage() {
         getMostWeatherSpecies(this.state.weatherSpeciesPage + 1, this.state.weatherEventQuery).then(res => {
-            this.setState({ speciesResults: res.results, speciesPage: this.state.speciesPage + 1 })
+            this.setState({ weatherSpeciesResults: res.results, weatherSpeciesPage: this.state.weatherSpeciesPage + 1 })
         })
     }
 
@@ -233,7 +233,7 @@ class ParksPage extends React.Component {
                             <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a particular park?</Text>
                             <FormControl as='fieldset'>
                                 <FormLabel >Weather Type</FormLabel>
-                                <RadioGroup onClick={ () => this.handleRadioButtonClick }>
+                                <RadioGroup onClick={ this.handleRadioButtonClick }>
                                     {weatherEvents.map((event) =>
                                         <Radio key={event + "1"} value={event}>{event}</Radio>
                                     )}
