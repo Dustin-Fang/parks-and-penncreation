@@ -178,7 +178,7 @@ async function getSpecies(req, res) {
     FROM Species S JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId
     WHERE S.Category IN ('Mammal', 'Bird', 'Reptile', 
       'Amphibian', 'Fish', 'Spider/Scorpion', 'Insect', 
-      'Crab/Lobster/Shr', 'Slug/Snail')
+      'Crab/Lobster/Shr', 'Slug/Snail') AND CN.CommonName != <> 'None'
     ORDER BY RAND()
     LIMIT 1;`,
       function (error, results) {
