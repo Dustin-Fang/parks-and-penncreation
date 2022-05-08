@@ -56,7 +56,7 @@ async function getParks(req, res) {
 
   if (req.body.ParkId >= 0) {
     whereClause = `P.ParkId = ${req.body.ParkId}`;
-  }
+  } 
   else {
     if (req.body.ParkName) {
       whereClause = `P.ParkName = '${req.body.ParkName}'`;
@@ -544,23 +544,23 @@ async function recommendPark(req, res) {
   // this runs when a type is provided for both
   if (hasBadClause && hasGoodClause) {
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, p.ParkId, WeatherType
       FROM filteredEvents fe
       JOIN Parks p on
       ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
   ),
     totals AS (
-      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      SELECT EventId, ParkName, State, ParkId, WeatherType, COUNT(EventId) as CT
       FROM filtered
       GROUP BY ParkName
   ),
   goodEvents AS (
-    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    SELECT totals.ParkName, totals.State, totals.ParkId,  CT, totalGood / CT as goodAvg
     FROM totals JOIN
         (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) x
             ON x.ParkName=totals.ParkName)
 
-    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    SELECT goodEvents.ParkName, goodEvents.State, goodEvents.ParkId, PercentBad / CT as badAvg, goodAvg
     FROM goodEvents JOIN
         (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered ${whereClauseBad} GROUP BY ParkName) y
             ON goodEvents.ParkName = y.ParkName
@@ -579,23 +579,23 @@ async function recommendPark(req, res) {
   } else if (hasBadClause && !hasGoodClause) {
     // runs when only bad event is provided
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, p.ParkId, WeatherType
       FROM filteredEvents fe
       JOIN Parks p on
       ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
   ),
     totals AS (
-      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      SELECT EventId, ParkName, State, ParkId, WeatherType, COUNT(EventId) as CT
       FROM filtered
       GROUP BY ParkName
   ),
   goodEvents AS (
-    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    SELECT totals.ParkName, totals.State, totals.ParkId, CT, totalGood / CT as goodAvg
     FROM totals JOIN
         (SELECT ParkName, 0 as totalGood FROM filtered GROUP BY ParkName) x
             ON x.ParkName=totals.ParkName)
 
-    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    SELECT goodEvents.ParkName, goodEvents.ParkId, goodEvents.State, PercentBad / CT as badAvg, goodAvg
     FROM goodEvents JOIN
         (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered ${whereClauseBad} GROUP BY ParkName) y
             ON goodEvents.ParkName = y.ParkName
@@ -614,23 +614,23 @@ async function recommendPark(req, res) {
   } else if (!hasBadClause && hasGoodClause) {
     // runs when only a good event is provided
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, p.ParkId, WeatherType
       FROM filteredEvents fe
       JOIN Parks p on
       ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
   ),
     totals AS (
-      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      SELECT EventId, ParkName, ParkId, State, WeatherType, COUNT(EventId) as CT
       FROM filtered
       GROUP BY ParkName
   ),
   goodEvents AS (
-    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    SELECT totals.ParkName, totals.ParkId, totals.State, CT, totalGood / CT as goodAvg
     FROM totals JOIN
         (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) x
             ON x.ParkName=totals.ParkName)
 
-    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    SELECT goodEvents.ParkName, goodEvents.ParkId, goodEvents.State, PercentBad / CT as badAvg, goodAvg
     FROM goodEvents JOIN
         (SELECT ParkName, 0 as PercentBad FROM filtered GROUP BY ParkName) y
             ON goodEvents.ParkName = y.ParkName

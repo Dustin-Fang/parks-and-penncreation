@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   Popover,
   PopoverTrigger,
@@ -46,7 +47,7 @@ const Form = ({ setShowModal, getResults, setModalHeader }) => {
             getResults(res.results);
           })
        } else {
-        setModalHeader("We thought you would love these parks");
+        setModalHeader("Parks you would love");
         getResults(r.results);
        } 
       })
