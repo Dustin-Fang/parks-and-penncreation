@@ -33,7 +33,7 @@ CREATE TABLE Species (
     ConservationStatus  varchar(64),
     ParkId              int,
     ParkCode            varchar(4),
-    PRIMARY KEY (SpeciesId),
+    PRIMARY KEY (SpeciesId, ScientificName),
     FOREIGN KEY (ParkId) REFERENCES Parks(ParkId)
 );
 
@@ -59,5 +59,5 @@ CREATE TABLE WeatherEvents (
     Zipcode         int,
     Duration        varchar(32),
     DurationInMinutes        int,
-    PRIMARY KEY (EventId)
+    PRIMARY KEY (EventId, Latitude, Longitude)
 );
