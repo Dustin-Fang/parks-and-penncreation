@@ -30,7 +30,7 @@ const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
 const parkFunFacts = [
     'This park has the largest number of different species!',
     'This park has the highest number of endangered/threatened species!',
-    'This park has the highest number of endangered/threatened species in Washington state.'
+    'This park has the highest number of endangered/threatened species in California.'
 ];
 
 class ParksPage extends React.Component {
