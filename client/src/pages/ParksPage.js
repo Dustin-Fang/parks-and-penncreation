@@ -159,14 +159,14 @@ class ParksPage extends React.Component {
             <VStack backgroundColor="#4E7C50">
                 <Flex
                     width="100wh"
-                    height="80vh"
+                    height="95vh"
                     justifyContent="center"
                     alignItems="center"
                     backgroundColor="#4E7C50"
                 >
                     <NavBar />
                     <HStack position="absolute" top="40px" padding={10} spacing="100px">
-                        <Box bg="#A7C193" width="600px" height="600px">
+                        <Box bg="#A7C193" width="600px" height="100%">
                             <Stack padding={3}>
                                 <Text fontSize="20px" fontWeight="semibold">
                                     Search for a Park
@@ -225,6 +225,7 @@ class ParksPage extends React.Component {
                                                     };
                                                 }} spacing={0} padding={0} dataSource={this.state.speciesResults} pagination={false}>
                                                     <Column title="Scientific Name" dataIndex="ScientificName" key="ScientificName"></Column>
+                                                    <Column title="Common Name" dataIndex="CommonName" key="CommonName"></Column>
                                                     <Column title="Nativeness" dataIndex="Nativeness" key="Nativeness"></Column>
                                                     <Column title="Abundance" dataIndex="Abundance" key="Abundance"></Column>
                                                 </Table>
