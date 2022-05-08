@@ -350,9 +350,11 @@ class ParksPage extends React.Component {
                                 <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a park?</Text>
                                 <FormControl as='fieldset'>
                                     <RadioGroup onClick={this.handleRadioButtonClick}>
+                                        <HStack spacing={2}>
                                         {weatherEvents.map((event) =>
-                                            <Radio key={event + "1"} value={event}>{event}</Radio>
+                                            <Radio spacing={1} key={event + "1"} value={event}>{event}</Radio>
                                         )}
+                                        </HStack>
 
                                     </RadioGroup>
                                 </FormControl>
@@ -368,6 +370,7 @@ class ParksPage extends React.Component {
                                             onClick: () => { this.turnWeatherSpeciesPage() }, // clicking the table takes you to the next page
                                         };
                                     }} spacing={0} padding={0} dataSource={this.state.weatherSpeciesResults} pagination={false}>
+                                        <Column title="Species ID" dataIndex="SpeciesId" key="SpeciesId"></Column>
                                         <Column title="Common Name" dataIndex="CommonName" key="CommonName"></Column>
                                     </Table>
                                     : null}
