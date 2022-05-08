@@ -278,7 +278,7 @@ WeatherType:
 'Rain': ~17s 309ms
 'Snow': ~4s 324ms
 'Storm': ~1s 118ms
-'Other Precipitation': N/A for filteredEvents
+'Precipit': Forgot to test
 
 
 
