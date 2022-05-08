@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   Popover,
   PopoverTrigger,
@@ -17,7 +18,7 @@ import {
 } from '@chakra-ui/react';
 
 import React, { useState, useRef } from 'react';
-import { getSpecies, getParksBySpecies } from "../fetcher.js";
+import { getSpecies, getParksBySpecies, getSpeciesWeather } from "../fetcher.js";
 
 
 // 2. Create the form
@@ -32,6 +33,7 @@ const Form = ({ setResults }) => {
   }
 
   async function onSearchClick() {
+    setResults([]); // reset
     const term = searchTerm.split(" ")[1];
     if(term === "CName") {
       getSpecies({commonName:input}).then((r) => {setResults(r.results)})
@@ -73,39 +75,44 @@ const Form = ({ setResults }) => {
 
 const PopoverForm = () => {
   const hasResults = useRef(false);
-  const [results, setResults] = useState([]);
+ // const [results, setResults] = useState([]);
   //const displayedResults = useRef([]);
   const [displayedResults, setDisplayedResults] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false)
   const [expandedSpecies, setExpandedSpecies] = useState({})
   const [foundInParks, setFoundInParks] = useState([]);
-
+  const [commonOccurrences, setCommonOccurrences] = useState([]);
 
   function handleSetResults(arr) {
     hasResults.current = true; 
-    setResults(arr);
+   // setResults(arr);
     // if 
      const temp = arr.slice(0, 4);
     setDisplayedResults(temp)
     // displayedResults.current = arr;
     setIsOpen(false) 
-  };
+  }
 
 
   async function handleModal(x) {
     if (x) {
       getParksBySpecies({pageNum:1, commonName: x.CommonName}).then((parks) => {
         const temp = [];
-        console.log(parks)
        parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
         setFoundInParks(temp);
         setModalOpen(true)
         hasResults.current = false;
         setExpandedSpecies(x);
-        console.log("opened")  
       });
-    } else {
+      const temp = [];
+       getSpeciesWeather({commonName: x.CommonName}).then((events) => {
+        console.log(events);
+         events.results.map(e => temp.push({event: e.WeatherType, num: e.Occurances}))
+
+        })
+       setCommonOccurrences(temp);
+      } else {
       hasResults.current = true;
       setModalOpen(false);
       setFoundInParks([]);
@@ -123,7 +130,7 @@ const PopoverForm = () => {
       >
         <PopoverTrigger>
           <HStack>
-          <Input onClick={() => {handleSetResults([]); setIsOpen(true)}} bg="A7C193" variant='outline' isReadOnly placeholder='Search for a species' />        
+          <Input onClick={() => {setIsOpen(true)}} bg="A7C193" variant='outline' isReadOnly placeholder='Search for a species' />        
           </HStack>
         
         </PopoverTrigger>
@@ -162,13 +169,21 @@ const PopoverForm = () => {
         <Popover >
           <Box  width="400px" height="200px"> 
           <VStack>
-
            
-        <Text>{expandedSpecies.CommonName}</Text>
-        <Text>{expandedSpecies.ScientificName}</Text>
-        <Text>{expandedSpecies.SpeciesId}</Text>
+        <Text> Name: {expandedSpecies.CommonName}</Text>
+        <Text> Scientific Name: {expandedSpecies.ScientificName}</Text>
+        <Text> ID: {expandedSpecies.SpeciesId}</Text>
+        <Text> Category: {expandedSpecies.Category}</Text>V
         <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>    
         { foundInParks.map(park =>  (<Text key={park.name}>  {park.name}, {park.state} </Text> )) }
+
+
+        <Text fontWeight="bold" fontSize="15px"> Most Common Weather Events Experienced </Text>    
+        {commonOccurrences.map(weather =>  (
+        <HStack key={weather.event}> 
+        <Text fontWeight="bold">  {weather.event}- </Text>
+        <Text> Number of Occurrences: {weather.num} </Text>
+         </HStack> )) }
 
         <Button onClick={() => handleModal()} variantColor="blue" >
           Close

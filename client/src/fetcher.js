@@ -110,7 +110,6 @@ export const getParksBySpecies = async (input) => {
     return response.json();
     } else if (input.commonName) {
       input.commonName.replace(" ", "+");
-      console.log(input.commonnaME)
       const response =
         await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${input.pageNum}?commonName=${input.commonName}`, {
           method: 'GET',
@@ -140,7 +139,6 @@ export const recommendPark = async (undesir, desir) => {
 }
 
 export const getSpecies = async (input) => {
-  console.log(input)
   if (input.commonName) {
     const response =
     await fetch(`http://${config.server_host}:${config.server_port}/species?commonName=${input.commonName}`, {
@@ -169,4 +167,22 @@ export const getSpecies = async (input) => {
     });
     return response.json();
   }
+}
+
+export const getSpeciesWeather = async (input) => {
+  console.log(input)
+  if (input.commonName) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species/weather?commonName=${input.commonName}`, {
+      method: 'GET',
+    });
+  return response.json();
+
+  } else if (input.scientificName) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species/weather?scientificName=${input.scientificName}`, {
+      method: 'GET',
+    });
+    return response.json();
+  } 
 }
