@@ -7,6 +7,7 @@ import {
   VStack,
   PopoverContent,
   Box,
+  Center,
   FormControl,
   FormLabel,
   Input,
@@ -19,10 +20,10 @@ import {
 
 import React, { useState, useRef } from 'react';
 import { getSpecies, getParksBySpecies, getSpeciesWeather } from "../fetcher.js";
-
+const loc = "http://localhost:3000";
 
 // 2. Create the form
-const Form = ({ setResults }) => {
+const Form = ({ setResults, setMsg }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [input, setInput] = useState("");
 
@@ -34,15 +35,46 @@ const Form = ({ setResults }) => {
 
   async function onSearchClick() {
     setResults([]); // reset
+    setMsg("Loading...");
     const term = searchTerm.split(" ")[1];
+    
     if(term === "CName") {
-      getSpecies({commonName:input}).then((r) => {setResults(r.results)})
+      console.log("cname")
+      getSpecies({commonName:input}).then((r) => {
+        console.log(r)
+        if (r.results.length) {
+          setMsg(""); 
+          setResults(r.results)
+        } else {
+          setMsg("No species found."); 
+        }
+      })
     } else if(term === "SName") {
-      getSpecies({scientificName:input}).then((r) => {setResults(r.results)})
+      getSpecies({scientificName:input}).then((r) => {
+        if (r.results.length) {
+          setMsg(""); 
+          setResults(r.results)
+        } else {
+          setMsg("No species found."); 
+        }
+      })
     } else if(term === "Zip") {
-      getSpecies({zip:input}).then((r) => {setResults(r.results)})
+      getSpecies({zip:input}).then((r) => {
+        if (r.results.length) {
+          setMsg(""); 
+          setResults(r.results)
+        } else {
+          setMsg("No species found."); 
+        }})
     } else if(term === "State") {
-      getSpecies({state:input}).then((r) => {setResults(r.results)})
+      getSpecies({state:input}).then((r) => {
+        if (r.results.length) {
+          setMsg(""); 
+          setResults(r.results)
+        } else {
+          setMsg("No species found."); 
+        }
+      })
     }
   }
 
@@ -75,53 +107,66 @@ const Form = ({ setResults }) => {
 
 const PopoverForm = () => {
   const hasResults = useRef(false);
- // const [results, setResults] = useState([]);
-  //const displayedResults = useRef([]);
+  const [results, setResults] = useState([]);
   const [displayedResults, setDisplayedResults] = useState([]);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false)
   const [expandedSpecies, setExpandedSpecies] = useState({})
   const [foundInParks, setFoundInParks] = useState([]);
   const [commonOccurrences, setCommonOccurrences] = useState([]);
+  const [msg, setMsg] = useState("");
 
   function handleSetResults(arr) {
-    hasResults.current = true; 
-   // setResults(arr);
-    // if 
-     const temp = arr.slice(0, 4);
-    setDisplayedResults(temp)
-    // displayedResults.current = arr;
+    setResults(arr.slice(0, 5));
+    setDisplayedResults(arr.slice(0, 5));
     setIsOpen(false) 
+    if (!arr.length) {
+      setModalOpen(false);
+      hasResults.current = false; 
+      return;
+    }
+ 
+    hasResults.current = true;
   }
 
-
   async function handleModal(x) {
+    setMsg("Loading weather...");
+
+    // reset any previous stats while we wait for new results
+    setFoundInParks([]);
+    setCommonOccurrences([]);
     if (x) {
-      getParksBySpecies({pageNum:1, commonName: x.CommonName}).then((parks) => {
-        const temp = [];
-       parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
-        setFoundInParks(temp);
+      const parks = await getParksBySpecies({pageNum:1, commonName: x.CommonName});
         setModalOpen(true)
         hasResults.current = false;
         setExpandedSpecies(x);
-      });
-      const temp = [];
-       getSpeciesWeather({commonName: x.CommonName}).then((events) => {
-        console.log(events);
-         events.results.map(e => temp.push({event: e.WeatherType, num: e.Occurances}))
 
-        })
-       setCommonOccurrences(temp);
+        const tempParks = [];
+        parks.results.map(park => tempParks.push({name: park.Name, state: park.State.split(",")[0], id: park.ParkId}));
+        setFoundInParks(tempParks);
+   
+        const tempEvents = [];
+        const events = await getSpeciesWeather({commonName: x.CommonName});
+          //console.log(events);
+        events.results.map(e => tempEvents.push({event: e.WeatherType, num: e.Occurances}));
+        // set events when full list is populated
+        setCommonOccurrences(tempEvents); 
+        setMsg("");
       } else {
-      hasResults.current = true;
+      // if no data was passed in, we are closint the modal. reset everything
       setModalOpen(false);
       setFoundInParks([]);
+      setCommonOccurrences([]);
+      setMsg("");
+      
+      // shows initial list of results, rather than detailed view
+      hasResults.current = true; 
     }
   }
 
   return (
     <> 
-    <Box bg="#A7C193" width="600px" height="650px">      
+    <Box bg="#A7C193" width="600px" height="700px">      
       <Box  padding={2} mr={3} >
       <Popover
         placement='bottom'
@@ -137,61 +182,115 @@ const PopoverForm = () => {
         <PopoverContent p={5}>
           {/* <FocusLock persistentFocus={false}> */}
             <PopoverCloseButton onClick={() => {setIsOpen(false)}}/>
-            <Form setResults={handleSetResults} />
+            <Form setResults={handleSetResults}setMsg={setMsg} />
           {/* </FocusLock> */}
         </PopoverContent>
       </Popover>
      
        </Box> 
      
-      {hasResults.current && displayedResults.map(r => 
-      <Box  key={r.SpeciesId}>
-          <HStack>
-          <Text fontWeight="bold"> Species Id: </Text>
-          <Link onClick={() => handleModal(r)}>{r.SpeciesId} </Link>
-          <Text fontWeight="bold"> Name:</Text>
-          <Text> {r.CommonName} </Text>
-          <Text fontWeight="bold"> Category:</Text>
-          <Text> {r.Category} </Text>
-         
+  {hasResults.current  && displayedResults.map(r =>  
+    
+       <Box  key={r.SpeciesId}>
+          <HStack paddingLeft={5} paddingTop={3}>
+            <Text fontWeight="bold"> Name: </Text>
+            <Link onClick={() => handleModal(r)}>{r.CommonName} </Link>
+        
+            <Text fontWeight="bold"> Category:</Text>
+            <Text> {r.Category} </Text>
           </HStack>
-          <Text> Family:  {r.Family}</Text>
+
+          <Box paddingLeft={5} paddingBottom={3} > 
+            <HStack>
+            <Text fontWeight="semibold"> Scientific Name:</Text>
+            <Text> {r.ScientificName} </Text>
+
+            <Text fontWeight="semibold"> ID:</Text>
+            <Text> {r.SpeciesId} </Text>
+
+            </HStack>
+
+            <HStack>
+            <Text fontWeight="semibold"> Family:</Text>
+            <Text> {r.Family} </Text>
+
+            <Text fontWeight="semibold"> Order:</Text>
+            <Text> {r.SpeciesOrder} </Text>
+            </HStack>
+
+            <HStack>
+            {r.Nativeness && 
+            <HStack>
+              <Text fontWeight="semibold"> Nativeness:</Text>
+              <Text> {r.Nativeness} </Text>
+            </HStack>}
      
-          <Text> Order: {r.SpeciesOrder} </Text>
-          <Text> Scientific Name: {r.ScientificName} </Text>
-         {r.ConservationStatus && <Text> Conservation Status: {r.ConservationStatus} </Text> }
-         {r.Nativeness && <Text>Nativeness {r.Nativeness} </Text> }
-       {r.Seasonality && <Text> Seasonality: {r.Seasonality} </Text> }
-          <Divider/>
-        </Box>)}
+            {r.Seasonality && 
+            <HStack>
+              <Text fontWeight="semibold"> Seasonality:</Text>
+              <Text> {r.Seasonality} </Text>
+            </HStack> }
+            </HStack>
+            {r.ConservationStatus &&  
+            <HStack>
+              <Text fontWeight="semibold"> Conservation Status:</Text>
+              <Text> {r.ConservationStatus} </Text>
+            </HStack>}
+         </Box>
+
+        <Divider/>
+      
+        </Box> )}
 
      {modalOpen &&
         <Popover >
-          <Box  width="400px" height="200px"> 
+          <Box position="absolute" left={125} top={150} justifyContent="center" width="400px" height="200px"> 
+
           <VStack>
            
-        <Text> Name: {expandedSpecies.CommonName}</Text>
-        <Text> Scientific Name: {expandedSpecies.ScientificName}</Text>
-        <Text> ID: {expandedSpecies.SpeciesId}</Text>
-        <Text> Category: {expandedSpecies.Category}</Text>V
+          <HStack>
+          <Text fontWeight="bold"> Name:</Text>
+          <Text> {expandedSpecies.CommonName} </Text>
+        </HStack>
+   
+        <HStack>
+          <Text fontWeight="semibold"> Scientific Name:</Text>
+          <Text> {expandedSpecies.ScientificName} </Text>
+        </HStack>
+
+        <HStack>
+          <Text fontWeight="semibold"> ID:</Text>
+          <Text> {expandedSpecies.SpeciesId} </Text>
+        </HStack>
+
+        <HStack>
+          <Text fontWeight="semibold"> Category:</Text>
+          <Text> {expandedSpecies.Category} </Text>
+        </HStack>
+     
+     
         <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>    
-        { foundInParks.map(park =>  (<Text key={park.name}>  {park.name}, {park.state} </Text> )) }
-
-
-        <Text fontWeight="bold" fontSize="15px"> Most Common Weather Events Experienced </Text>    
+        { foundInParks.map(park =>  (<Link key={park.name} onClick={() => window.location.href = `${loc}/parks?id=${park.id}` } > {park.name}, {park.state}  </Link>)) }
+     
+        {commonOccurrences.length &&
+        <Box>
+        <Text fontWeight="bold" fontSize="15px"> Most Common Weather Events Experienced (2021) </Text>    
         {commonOccurrences.map(weather =>  (
-        <HStack key={weather.event}> 
-        <Text fontWeight="bold">  {weather.event}- </Text>
-        <Text> Number of Occurrences: {weather.num} </Text>
+        <HStack justifyContent={"center"} key={weather.event}> 
+        <Text fontWeight="semibold">  {weather.event}: </Text>
+        <Text> {weather.num} occurrences</Text>
          </HStack> )) }
+        </Box> }
+      
 
         <Button onClick={() => handleModal()} variantColor="blue" >
           Close
         </Button>
         </VStack>
+  
         </Box>
         </Popover> }
-     
+     <Text fontSize="15px" position="absolute" left={250} bottom={50}>  {msg} </Text>
       </Box>
     </>
   )

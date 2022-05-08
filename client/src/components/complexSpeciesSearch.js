@@ -75,7 +75,7 @@ const PopoverForm = () => {
 
   return (
     <> 
-    <Box bg="#A7C193" width="600px" height="600px">
+    <Box bg="#A7C193" width="600px" height="700px">
       <Box  padding={2} mr={3} >
   
       <Popover
@@ -85,7 +85,8 @@ const PopoverForm = () => {
       >
         <PopoverTrigger>
           <HStack>
-          <Input onClick={() => setIsOpen(true)} bg="A7C193" variant='outline' isReadOnly placeholder='Get all species by 2021 weather' />        
+          <Input onClick={() => setIsOpen(true)} bg="A7C193" variant='outline' isReadOnly 
+          placeholder='Get 2021 weather for a species in a given zipcode and category' />        
           </HStack>
         
         </PopoverTrigger>
@@ -119,7 +120,7 @@ const PopoverForm = () => {
     </Tbody>
   </Table>
 </TableContainer>}
-<Text position="absolute" bottom={20} right={270}> {msg} </Text>
+<Text position="absolute"bottom={95}  right={270}> {msg} </Text>
 </>
   )
 }

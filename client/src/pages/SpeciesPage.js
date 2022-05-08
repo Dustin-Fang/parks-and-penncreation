@@ -21,8 +21,6 @@ function SpeciesPage() {
     >
       <NavBar/>
 
-      <AnimalOfDay/>
-
       <HStack position="absolute" top="40px" padding={10} spacing="100px">
       <SimpleSearch/> 
       <ComplexSearch /> 
