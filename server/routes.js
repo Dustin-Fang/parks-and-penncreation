@@ -370,7 +370,7 @@ async function parkHighestOccurrenceWeather(req, res) {
         ORDER BY WeatherPercentage DESC
         LIMIT 1
     )
-  SELECT S.SpeciesId, CommonName
+  SELECT DISTINCT S.SpeciesId, CommonName
   FROM (SELECT SpeciesId, ParkId FROM Species) S JOIN (SELECT ParkId FROM Highest_Occurence_Park) P2 on P2.ParkId = S.ParkId
       JOIN CommonNames CN on S.SpeciesId = CN.SpeciesId
   LIMIT ${pagesize} OFFSET ${offset};`,
@@ -475,6 +475,9 @@ async function mostLikelyWeather(req, res) {
   if (req.body.zipcode < 0) {
     return res.status(404).json({ error: 'Invalid zipcode'})
   }
+  if (!req.body.zipcode) {
+    return res.status(404).json({ error: 'No zipcode provided'})
+  }
   const zipcode = req.body.zipcode
   // needs area range
   const zipCoordsObj = getCoords(zipcode);
@@ -489,6 +492,9 @@ async function mostLikelyWeather(req, res) {
 
   if (endMonth < startMonth) {
     return res.status(404).json({ error: 'Invalid time range.' });
+  }
+  if (startMonth <= 0 || startMonth > 12 || endMonth <=0 || endMonth >  12) {
+    return res.status(404).json({ error: 'Month out of valid range.'})
   }
 
   // aggregate by duration
