@@ -28,11 +28,6 @@ import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeat
 
 const { Column } = Table; //, ColumnGroup
 const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
-const parkFunFacts = [
-    'This park has the largest number of different species!',
-    'This park has the highest number of endangered/threatened species!',
-    'This park has the highest number of endangered/threatened species in California.'
-];
 
 class ParksPage extends React.Component {
 
@@ -142,10 +137,11 @@ class ParksPage extends React.Component {
     }
 
     async getFunFact() {
-        var rndNum = Math.floor(Math.random() * 3) + 1;
+        var rndNum = Math.floor(Math.random() * 4) + 1;
+        if (rndNum > 3) rndNum = 3; // choose option 3 with a higher probability
         getParksFunFact(rndNum).then(res => {
             console.log(res)
-            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: parkFunFacts[rndNum - 1] })
+            this.setState({ funFactPark: res.results[0].ParkName, funFactPrompt: res.prompt })
         })
     }
 
@@ -299,7 +295,7 @@ class ParksPage extends React.Component {
                         </Box>
 
                         <Box bg="#A7C193" width="100%" height="600px">
-                            <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a particular park?</Text>
+                            <Text fontSize="20px" fontWeight="semibold">What species experienced the most of a weather event in a park?</Text>
                             <FormControl as='fieldset'>
                                 <FormLabel >Weather Type</FormLabel>
                                 <RadioGroup onClick={this.handleRadioButtonClick}>

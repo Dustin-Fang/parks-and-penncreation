@@ -97,11 +97,12 @@ async function getParks(req, res) {
 //Route 8
 async function getParksFunfact(req, res) {
   const id = parseInt(req.params.id);
-  let query;
+  let query, prompt;
 
   if (id) {
     if (id >= 1 && id <= 3) {
       query = parkFunFacts[id - 1].query;
+      prompt = parkFunFacts[id - 1].prompt;
 
     } else {
       res.status(404).json({ error: "Invalid fact id provided!" })
@@ -116,7 +117,7 @@ async function getParksFunfact(req, res) {
           res.json({ error: error })
         } else if (results) {
           res.status(200)
-          res.json({ results: results })
+          res.json({ results: results, prompt: prompt })
         }
       });
   } else {
