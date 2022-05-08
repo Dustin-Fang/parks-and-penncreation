@@ -49,7 +49,7 @@ const parkFunFacts = [
       `  With StateParks AS (
       SELECT DISTINCT ParkId, ParkName
       FROM Parks P, WeatherEvents W
-      WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0 AND W.WeatherState = 'CA'
+      WHERE ABS(W.Latitude - P.Latitude) <= 1.0 AND ABS(W.Longitude - P.Longitude) <= 1.0 AND W.WeatherState = 'WA'
   )
   SELECT ParkName, ConservationStatus,
          (SELECT COUNT(SpeciesId)
@@ -59,7 +59,7 @@ const parkFunFacts = [
   HAVING ConservationStatus IS NOT NULL
   ORDER BY Status DESC
   LIMIT 1;`,
-    prompt: 'This park has the highest number of endangered/threatened species in California'
+    prompt: 'This park has the highest number of endangered/threatened species in Washington state'
   }
 ]
 

@@ -30,7 +30,7 @@ const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
 const parkFunFacts = [
     'This park has the largest number of different species!',
     'This park has the highest number of endangered/threatened species!',
-    'This park has the highest number of endangered/threatened species in California.'
+    'This park has the highest number of endangered/threatened species in Washington state.'
 ];
 
 class ParksPage extends React.Component {
@@ -135,7 +135,6 @@ class ParksPage extends React.Component {
     }
 
     async updateWeatherSearchResults() {
-        console.log(this.state)
         postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
             this.setState({ weatherResults: res.results })
         })
