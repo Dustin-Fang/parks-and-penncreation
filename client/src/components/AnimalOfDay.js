@@ -43,7 +43,7 @@ function AnimalOfDay() {
           scientificName.current = aod.ScientificName;
           order.current = aod.SpeciesOrder;
   
-          getParksBySpecies(1, aod.ScientificName).then((parks) => {
+          getParksBySpecies({pageNum:1, scientificName: aod.ScientificName}).then((parks) => {
             const temp = [];
            parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
            setFoundInParks(temp);
@@ -53,7 +53,7 @@ function AnimalOfDay() {
       } 
       await getRandomAnimal().then((res) => {
         // console.log(res.results)
-          getParksBySpecies(1, res.results[0].ScientificName).then((parks) => {
+          getParksBySpecies({pageNum:1, scientificName:res.results[0].ScientificName}).then((parks) => {
             const temp = [];
             parks.results.map(park => temp.push({name: park.Name, state: park.State.split(",")[0]}))
             setFoundInParks(temp);

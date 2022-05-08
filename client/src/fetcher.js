@@ -84,14 +84,25 @@ export const getRandomAnimal = async () => {
   return response.json();
 }
 
-export const getParksBySpecies = async (pageNum, scientificName) => {
-  scientificName.replace(" ", "+");
-  const response =
-    await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${pageNum}?scientificName=${scientificName}`, {
-      method: 'GET',
-    });
-  // console.log(response.json())
-  return response.json();
+export const getParksBySpecies = async (input) => {
+  if (input.scientificName) {
+    input.scientificName.replace(" ", "+");
+    const response =
+      await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${input.pageNum}?scientificName=${input.scientificName}`, {
+        method: 'GET',
+      });
+    // console.log(response.json())
+    return response.json();
+    } else if (input.commonName) {
+      input.commonName.replace(" ", "+");
+      console.log(input.commonnaME)
+      const response =
+        await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${input.pageNum}?commonName=${input.commonName}`, {
+          method: 'GET',
+        });
+      // console.log(response.json())
+      return response.json();
+    }
 }
 
 export const recommendPark = async (undesir, desir) => {
@@ -111,4 +122,36 @@ export const recommendPark = async (undesir, desir) => {
     });
   // console.log(response.json())
   return response.json();
+}
+
+export const getSpecies = async (input) => {
+  console.log(input)
+  if (input.commonName) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species?commonName=${input.commonName}`, {
+      method: 'GET',
+    });
+  return response.json();
+
+  } else if (input.scientificName) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species?scientificName=${input.scientificName}`, {
+      method: 'GET',
+    });
+    return response.json();
+
+  } else if (input.zip) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species?zipcode=${input.zip}`, {
+      method: 'GET',
+    });
+    return response.json();
+
+  } else if (input.state) {
+    const response =
+    await fetch(`http://${config.server_host}:${config.server_port}/species?state=${input.state}`, {
+      method: 'GET',
+    });
+    return response.json();
+  }
 }

@@ -10,7 +10,6 @@ import NavBar from '../components/NavBar';
 import AnimalOfDay from '../components/AnimalOfDay';
 
 function SpeciesPage() {
-
   return (
     <Flex
     width="100wh"  
@@ -24,12 +23,10 @@ function SpeciesPage() {
       <AnimalOfDay/>
 
       <HStack position="absolute" top="40px" padding={10} spacing="100px">
-      <SimpleSearch /> 
+      <SimpleSearch/> 
       <ComplexSearch /> 
       </HStack>
 
-     
-     
   </Flex>
   );
 }
