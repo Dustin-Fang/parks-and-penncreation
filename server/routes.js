@@ -510,21 +510,28 @@ async function recommendPark(req, res) {
 
   if (hasBadClause && hasGoodClause) {
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
-      FROM filteredEvents fe JOIN Parks p
-      ON ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
-    )
-      SELECT percentGood.ParkName, totalBad / CT as badAvg, goodAvg
-      FROM (SELECT good.ParkName, CT, totalGood / CT as goodAvg
-          FROM
-              (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
-                  JOIN
-              (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) good
-          ON good.ParkName=totals.ParkName) percentGood
-          JOIN
-          (SELECT ParkName, COUNT(EventId) as totalBad FROM filtered ${whereClauseBad} GROUP BY ParkName) bad
-      ON percentGood.ParkName = bad.ParkName
-      HAVING badAvg < 0.3 AND goodAvg > 0.3;
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+      FROM filteredEvents fe
+      JOIN Parks p on
+      ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
+  ),
+    totals AS (
+      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      FROM filtered
+      GROUP BY ParkName
+  ),
+  goodEvents AS (
+    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    FROM totals JOIN
+        (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) x
+            ON x.ParkName=totals.ParkName)
+
+    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    FROM goodEvents JOIN
+        (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered ${whereClauseBad} GROUP BY ParkName) y
+            ON goodEvents.ParkName = y.ParkName
+    HAVING badAvg < 0.3 AND goodAvg > 0.3
+    LIMIT 10;
     `,
       function (error, results) {
         if (error) {
@@ -537,21 +544,28 @@ async function recommendPark(req, res) {
       });
   } else if (hasBadClause && !hasGoodClause) {
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
-      FROM filteredEvents fe JOIN Parks p
-      ON ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
-    )
-      SELECT percentGood.ParkName, totalBad / CT as badAvg, goodAvg
-      FROM (SELECT good.ParkName, CT, totalGood / CT as goodAvg
-          FROM
-              (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
-                  JOIN
-              (SELECT ParkName, 0 as totalGood FROM filtered GROUP BY ParkName) good
-          ON good.ParkName=totals.ParkName) percentGood
-          JOIN
-          (SELECT ParkName, COUNT(EventId) as totalBad FROM filtered ${whereClauseBad} GROUP BY ParkName) bad
-      ON percentGood.ParkName = bad.ParkName
-      HAVING badAvg < 0.3 AND goodAvg > 0.3;
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+      FROM filteredEvents fe
+      JOIN Parks p on
+      ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
+  ),
+    totals AS (
+      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      FROM filtered
+      GROUP BY ParkName
+  ),
+  goodEvents AS (
+    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    FROM totals JOIN
+        (SELECT ParkName, 0 as totalGood FROM filtered GROUP BY ParkName) x
+            ON x.ParkName=totals.ParkName)
+
+    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    FROM goodEvents JOIN
+        (SELECT ParkName, COUNT(EventId) as PercentBad FROM filtered ${whereClauseBad} GROUP BY ParkName) y
+            ON goodEvents.ParkName = y.ParkName
+    HAVING badAvg < 0.3
+    LIMIT 10;
     `,
       function (error, results) {
         if (error) {
@@ -564,21 +578,28 @@ async function recommendPark(req, res) {
       });
   } else if (!hasBadClause && hasGoodClause) {
     connection.query(`
-    WITH filtered AS (SELECT EventId, p.ParkName, WeatherType
-      FROM filteredEvents fe JOIN Parks p
-      ON ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
-    )
-      SELECT percentGood.ParkName, totalBad / CT as badAvg, goodAvg
-      FROM (SELECT good.ParkName, CT, totalGood / CT as goodAvg
-          FROM
-              (SELECT EventId, ParkName, WeatherType, COUNT(EventId) as CT FROM filtered GROUP BY ParkName) totals
-                  JOIN
-              (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) good
-          ON good.ParkName=totals.ParkName) percentGood
-          JOIN
-          (SELECT ParkName, 0 as totalBad FROM filtered GROUP BY ParkName) bad
-      ON percentGood.ParkName = bad.ParkName
-      HAVING badAvg < 0.3 AND goodAvg > 0.3;
+    WITH filtered AS (SELECT EventId, p.ParkName, p.State, WeatherType
+      FROM filteredEvents fe
+      JOIN Parks p on
+      ABS(fe.Latitude - p.Latitude) <= 1.0 AND ABS(fe.Longitude - p.Longitude) <= 1.0
+  ),
+    totals AS (
+      SELECT EventId, ParkName, State, WeatherType, COUNT(EventId) as CT
+      FROM filtered
+      GROUP BY ParkName
+  ),
+  goodEvents AS (
+    SELECT totals.ParkName, totals.State, CT, totalGood / CT as goodAvg
+    FROM totals JOIN
+        (SELECT ParkName, COUNT(EventId) as totalGood FROM filtered ${whereClauseGood} GROUP BY ParkName) x
+            ON x.ParkName=totals.ParkName)
+
+    SELECT goodEvents.ParkName, goodEvents.State, PercentBad / CT as badAvg, goodAvg
+    FROM goodEvents JOIN
+        (SELECT ParkName, 0 as PercentBad FROM filtered GROUP BY ParkName) y
+            ON goodEvents.ParkName = y.ParkName
+    HAVING badAvg < 0.3 AND goodAvg > 0.3
+    LIMIT 10;
     `,
       function (error, results) {
         if (error) {
