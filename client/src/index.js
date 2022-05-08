@@ -7,9 +7,9 @@ import {
 } from 'react-router-dom';
 
 import { ChakraProvider } from '@chakra-ui/react';
-import HomePage from './components/HomePage';
+import HomePage from './pages/HomePage';
 import ParksPage from './pages/ParksPage';
-import SpeciesPage from './components/SpeciesPage';
+import SpeciesPage from './pages/SpeciesPage';
 import 'antd/dist/antd.min.css';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

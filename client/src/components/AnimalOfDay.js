@@ -1,5 +1,4 @@
 import {
-  Flex,
   Popover,
   PopoverTrigger,
   PopoverBody,
@@ -11,13 +10,13 @@ import {
   VStack,
   HStack,
 } from '@chakra-ui/react';
-import NavBar from './NavBar';
-import React, { useState, useRef } from 'react';
-import PopoverForm from './parkSearch';
-import { getRandomAnimal, getParksBySpecies } from '../fetcher';
-import RPModal from './recommendedParks';
 
-function HomePage() {
+import React, { useState, useRef } from 'react';
+
+import { getRandomAnimal, getParksBySpecies } from '../fetcher';
+
+
+function AnimalOfDay() {
   const [speciesName, setSpeciesName] = useState("");
   // is "animal of day" open?
   const [isOpen, setIsOpen] = useState(false);
@@ -26,14 +25,7 @@ function HomePage() {
   const family = useRef("");
   const order = useRef("");
   const [foundInParks, setFoundInParks] = useState([]);
-  const [recommendedParks, setRecommendedParks] = useState([]);
-  const [modalHeader, setModalHeader] = useState("");
-  // show modal with park results?
-  const [showModal, setShowModal] = useState(false);
 
-  function handleSetShowModal(isOpen) { handleSetRecParks([]); setShowModal(isOpen) }
-  function handleSetRecParks(arr) { setRecommendedParks(arr) }
-  function handleSetModalHeader(body) { setModalHeader(body) }
 
   async function onAODClick() { 
     setIsOpen(!isOpen);
@@ -81,16 +73,6 @@ function HomePage() {
   }
 
   return (
-    <Flex
-    width="100wh"  
-    height="100vh"  
-    justifyContent="center"
-    alignItems="center"
-    bgImage=
-    "url(https://www.flushmate.com/sites/flushmate/files/2020-04/Sequoia-Lodge-Gallery-02.jpg)"
-    bgSize="cover"
-   >
-      <NavBar/>
       <Box position="absolute" bottom={30} right={70}>
         <Popover isOpen={isOpen}>
           <PopoverTrigger>
@@ -136,15 +118,7 @@ function HomePage() {
           </PopoverContent>
           </Popover>
       </Box>
-
-      <Box bgColor="#FFFFF" position="absolute" >
-        {!showModal && <PopoverForm setShowModal={handleSetShowModal} setModalHeader={handleSetModalHeader} getResults={handleSetRecParks}/>}
-        {showModal && <RPModal setShowModal={handleSetShowModal} modalHeader={modalHeader} results={recommendedParks}/>}
-      </Box>
-
-      <Text fontWeight="bold" fontSize="15px" position="absolute" left={1} bottom={0} color="#ebe534"> Sequoia National Park, CA </Text>
-  </Flex>
   );
 }
 
-export default HomePage;
+export default AnimalOfDay;
