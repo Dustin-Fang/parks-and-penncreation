@@ -44,7 +44,7 @@ app.get('/parks/species/:pageNumber', routes.speciesByPark)
 
 // Route 5: returns a list of species ordered by the total time spent experiencing each weather type
 // Does not take in a pageNumber as this query is slow
-app.post('species/data', routes.speciesTotalWeather)
+app.post('/species/data', routes.speciesTotalWeather)
 
 // Route 6: get a list of species who experience the most of a weather type
 app.get('/parks/mostWeatherSpecies/:pageNumber', routes.parkHighestOccurrenceWeather)
@@ -60,8 +60,6 @@ app.post('/parks/weatherByRange', routes.mostLikelyWeather)
 
 // Route 10: return a list of parks where desirable weather events account for more than 30% of events
 app.post('/parks/recommend', routes.recommendPark)
-
-// TODO: Apply pagesize (Fixed to 5) and pagenumber where appropriate (fast queries)
 
 // start the server of the port given in config
 function startApp () {

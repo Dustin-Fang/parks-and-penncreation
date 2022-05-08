@@ -4,7 +4,6 @@ import React from 'react';
 import {
     Flex,
     HStack,
-    //VStack,
     Stack,
     Box,
     FormControl,
@@ -12,7 +11,8 @@ import {
     Input,
     Text,
     Button,
-    Image
+    Image,
+    VStack
 } from '@chakra-ui/react';
 
 import {
@@ -21,7 +21,7 @@ import {
 } from 'antd'
 
 import NavBar from '../components/NavBar';
-import { getParksSearch, getPark, getParksFunFact } from '../fetcher'
+import { getParksSearch, getPark, getParksFunFact, getSpeciesByPark } from '../fetcher'
 
 const { Column } = Table; //, ColumnGroup
 
@@ -36,7 +36,8 @@ class ParksPage extends React.Component {
             selectedParkId: window.location.search ? window.location.search.substring(1).split('=')[1] : 0,
             selectedParkDetails: null,
             parksResults: [],
-            factNumber: 1,
+            speciesResults: [],
+            speciesPage: 1,
             funFact: ''
         }
 
@@ -45,7 +46,6 @@ class ParksPage extends React.Component {
         this.handleZipcodeQueryChange = this.handleZipcodeQueryChange.bind(this)
         this.handleStateQueryChange = this.handleStateQueryChange.bind(this)
         this.setPark = this.setPark.bind(this)
-        this.setFact = this.setFact.bind(this)
     }
 
 
@@ -64,33 +64,37 @@ class ParksPage extends React.Component {
     async setPark(parkId) {
         this.setState({ selectedParkId: parkId })
         getPark(this.state.selectedParkId).then(res => {
-            console.log(res)
             this.setState({ selectedParkDetails: res.results[0] })
+        })
+        getSpeciesByPark(1, this.state.selectedParkId).then(res => {
+            this.setState({ speciesResults: res.results, speciesPage: 1 })
         })
     }
 
-    async setFact() {
-        var rndNum = Math.floor(Math.random * 3) + 1;
-        this.setState({ factNumber: rndNum})
-        getParksFunFact(this.state.factNumber).then(res => {
-            console.log(res.results)
-            this.setState({ funFact: res.results[0] })
+    async turnSpeciesPage() {
+        getSpeciesByPark(this.state.speciesPage + 1, this.state.selectedParkId).then(res => {
+            this.setState({ speciesResults: res.results, speciesPage: this.state.speciesPage + 1 })
         })
     }
 
     async updateSearchResults() {
         getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-            console.log(res.results)
-            this.setState({ parksResults: res.results})
+            this.setState({ parksResults: res.results })
         })
     }
 
     async componentDidMount() {
+        var rndNum = Math.floor(Math.random * 3) + 1;
         getPark(this.state.selectedParkId).then(res => {
-            console.log(res.results)
             this.setState({ selectedParkDetails: res.results[0] })
         })
-        this.setFact()
+        getParksFunFact(rndNum).then(res => {
+            console.log(res.results)
+            this.setState({ funFact: res.results[0] })
+        })
+        getSpeciesByPark(1, this.state.selectedParkId).then(res => {
+            this.setState({ speciesResults: res.results, speciesPage: 1 })
+        })
     }
 
     render() {
@@ -112,65 +116,70 @@ class ParksPage extends React.Component {
                             <FormControl as='fieldset' paddingBottom="15px">
 
                                 <HStack padding={0}>
-                                <Stack padding={0}><FormLabel spacing = {0}>Park name</FormLabel>
-                                <Input spacing = {0} placeholder="Acadia National Park" value={this.state.nameQuery} onChange={this.handleNameQueryChange} bg="A7C193" variant='outline' /></Stack>
+                                    <Stack padding={0}><FormLabel spacing={0}>Park name</FormLabel>
+                                        <Input spacing={0} placeholder="Acadia National Park" value={this.state.nameQuery} onChange={this.handleNameQueryChange} bg="A7C193" variant='outline' /></Stack>
 
-                                <Stack padding={0}><FormLabel spacing = {0}>Zipcode</FormLabel>
-                                <Input spacing = {0} placeholder="4609" value={this.state.zipcodeQuery} onChange={this.handleZipcodeQueryChange} bg="A7C193" variant='outline' /></Stack>
+                                    <Stack padding={0}><FormLabel spacing={0}>Zipcode</FormLabel>
+                                        <Input spacing={0} placeholder="4609" value={this.state.zipcodeQuery} onChange={this.handleZipcodeQueryChange} bg="A7C193" variant='outline' /></Stack>
 
 
-                                <Stack padding={0}><FormLabel spacing = {0}>State</FormLabel>
-                                <Input spacing = {0} placeholder="CO" value={this.state.clubQuery} onChange={this.handleStateQueryChange} bg="A7C193" variant='outline' /></Stack>
-                            
+                                    <Stack padding={0}><FormLabel spacing={0}>State</FormLabel>
+                                        <Input spacing={0} placeholder="CO" value={this.state.clubQuery} onChange={this.handleStateQueryChange} bg="A7C193" variant='outline' /></Stack>
+
                                 </HStack>
 
                             </FormControl>
                             <Button colorScheme='green' onClick={this.updateSearchResults}>Search</Button>
-                            
+
                             <Divider />
-                            <Table onRow={(record, rowIndex) => {
+                            <Table onRow={(record) => {
                                 return {
-                                    onClick: event => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
+                                    onClick: () => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
                                 };
                             }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 10], defaultPageSize: 5, showQuickJumper: true }}>
                                 <Column title="Name" dataIndex="ParkName" key="ParkName"></Column>
                                 <Column title="State" dataIndex="State" key="State"></Column>
-                                <Column title="Zip Code" dataIndex="Zipcode" key="Zipcode"></Column>
-                            </Table> 
+                                <Column title="Acres" dataIndex="Acres" key="Acres"></Column>
+                            </Table>
                         </Stack>
                     </Box>
 
-                    <Box bg="#A7C193" width="600px" height="600px">
-                        <Stack padding={3}>
-                            <Text fontSize="20px" fontWeight="semibold">
-                                Park Information
-                            </Text>
-                            <Box padding={2} mr={3} bg='white' height='500px'>
-                            {this.state.selectedParkDetails ? 
-                                <Stack>
-                                    <Text fontSize="18px" fontWeight="semibold">{this.state.selectedParkDetails.ParkName}</Text>
-                                    <HStack>
-                                    <Image height="200px" width="200px" src={this.state.selectedParkDetails.ImageURL}></Image>
+                    <Box bg="#A7C193" width="600px" height="100%">
+                        <VStack padding={3}>
+                            <Box padding={2} bg='white' width="100%" height="100%">
+                                {this.state.selectedParkDetails ?
                                     <Stack>
-                                    <Text>State: {this.state.selectedParkDetails.State}</Text>
-                                    <Text>Acres: {this.state.selectedParkDetails.Acres}</Text>
-                                    <Text>Latitude: {this.state.selectedParkDetails.Latitude}</Text>
-                                    <Text>Longitude: {this.state.selectedParkDetails.Longitude}</Text>
+                                        <HStack>
+                                            <Stack>
+                                            <Text fontSize="18px" fontWeight="semibold">{this.state.selectedParkDetails.ParkName}</Text>
+                                                <Text>State: {this.state.selectedParkDetails.State}</Text>
+                                                <Text>Acres: {this.state.selectedParkDetails.Acres}</Text>
+                                                <Text>Latitude: {this.state.selectedParkDetails.Latitude}</Text>
+                                                <Text>Longitude: {this.state.selectedParkDetails.Longitude}</Text>
+                                            </Stack>
+                                            <Image height="200px" width="300px" src={this.state.selectedParkDetails.ImageURL}></Image>
+                                        </HStack>
+                                        <Text fontWeight="semibold">Species in Park (Click to see next page)</Text>
+                                        {this.state.speciesResults ?
+                                            <Table onRow={() => {
+                                                return {
+                                                    onClick: () => { this.turnSpeciesPage()}, // clicking the table takes you to the next page
+                                                };
+                                            }} spacing={0} padding={0} dataSource={this.state.speciesResults} pagination={false}>
+                                                <Column title="Scientific Name" dataIndex="ScientificName" key="ScientificName"></Column>
+                                                <Column title="Nativeness" dataIndex="Nativeness" key="Nativeness"></Column>
+                                                <Column title="Abundance" dataIndex="Abundance" key="Abundance"></Column>
+                                            </Table>
+                                            : null}
                                     </Stack>
-                                    </HStack>
-                                </Stack>
-                                : null}
+                                    : null}
                             </Box>
-                         
-
-                        </Stack>
+                        </VStack>
                     </Box>
                 </HStack>
-                {/* <Box bg="#A7C193">
-                    <Stack>
+                {/* <Box bg="#A7C193" >
                     <Text fontSize="20px" fontWeight="semibold">Fun Fact:</Text>
                     <Text>{this.state.funFact}</Text>
-                </Stack>
                 </Box> */}
             </Flex>
         );
