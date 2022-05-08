@@ -28,6 +28,9 @@ import { getParksSearch, getPark, getSpeciesByPark, getParksFunFact, getMostWeat
 
 const { Column } = Table; //, ColumnGroup
 const weatherEvents = ['Rain', 'Fog', 'Snow', 'Cold', 'Storm', 'Precipitation'];
+const allStates = ['AL', 'AK', 'AZ', 'AS', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 
+                    'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND',
+                    'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', '']
 
 class ParksPage extends React.Component {
 
@@ -50,7 +53,9 @@ class ParksPage extends React.Component {
             weatherZipcodeQuery: '',
             startMonthQuery: '',
             endMonthQuery: '',
-            weatherResults: []
+            weatherResults: [],
+            searchError: '',
+            weatherSearchError: ''
         }
 
         this.updateSearchResults = this.updateSearchResults.bind(this)
@@ -77,7 +82,7 @@ class ParksPage extends React.Component {
     }
 
     handleStateQueryChange(event) {
-        this.setState({ stateQuery: event.target.value })
+        this.setState({ stateQuery: event.target.value})
     }
 
     handleRadioButtonClick(event) {
@@ -125,15 +130,38 @@ class ParksPage extends React.Component {
     }
 
     async updateSearchResults() {
-        getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
-            this.setState({ parksResults: res.results })
-        })
+        if (!allStates.includes(this.state.stateQuery) ) {
+            this.setState({ searchError: "You can only search with valid two-letter state codes."})
+        }
+        else if (isNaN(this.state.zipcodeQuery) || this.state.zipcodeQuery.length > 5) {
+            this.setState({ searchError: "Please enter a valid zipcode."})
+        }
+        else {
+            getParksSearch(this.state.nameQuery, this.state.zipcodeQuery, this.state.stateQuery, null, null).then(res => {
+                this.setState({ parksResults: res.results , searchError: ''})
+            })
+        }
     }
 
     async updateWeatherSearchResults() {
-        postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
-            this.setState({ weatherResults: res.results })
-        })
+        if (this.state.weatherZipcodeQuery === "" || isNaN(this.state.weatherZipcodeQuery) || this.state.weatherZipcodeQuery.length > 5) {
+            this.setState({ weatherSearchError: "Please enter a valid zipcode."})
+        }
+        else if (isNaN(this.state.startMonthQuery) || isNaN(this.state.endMonthQuery)) {
+            this.setState({ weatherSearchError: "Month query must be a number."})
+        }
+        else if (parseInt(this.state.startMonthQuery) > 12 || parseInt(this.state.startMonthQuery) < 1
+            || parseInt(this.state.endMonthQuery) > 12 || parseInt(this.state.endMonthQuery) < 1) {
+                this.setState({ weatherSearchError: "Month query must be between 1 and 12."})
+        }
+        else if (parseInt(this.state.endMonthQuery) < parseInt(this.state.startMonthQuery)) {
+            this.setState({ weatherSearchError: "Start month cannot be greater than end month."})
+        }
+        else {
+            postParksWeatherSearch(this.state.weatherZipcodeQuery, this.state.startMonthQuery, this.state.endMonthQuery).then(res => {
+                this.setState({ weatherResults: res.results, weatherSearchError: '' })
+            })
+        }
     }
 
     async getFunFact() {
@@ -188,6 +216,7 @@ class ParksPage extends React.Component {
 
                                 </FormControl>
                                 <Button colorScheme='green' onClick={this.updateSearchResults}>Search</Button>
+                                <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.searchError} </Text>
 
                                 <Divider />
                                 <Table onRow={(record) => {
@@ -267,6 +296,8 @@ class ParksPage extends React.Component {
 
                                 </FormControl>
                                 <Button colorScheme='green' onClick={this.updateWeatherSearchResults}>Search</Button>
+                                <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {this.state.weatherSearchError} </Text>
+
                                 {this.state.weatherResults ?
                                     <Table spacing={0} padding={0} dataSource={this.state.weatherResults} pagination={false}>
                                         <Column title="Weather Type" dataIndex="WeatherType" key="WeatherType"></Column>
