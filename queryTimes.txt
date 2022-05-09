@@ -4,6 +4,6 @@ QueryName/Desc      			                                       Before:		After:
 
 Weather events by species per year	                          2m 15s 349ms		27s 759ms
 Species of park with most weather type                         1m 14s 40ms
-Select parks by including and excluding given weather events    >15 min       33s
+Select parks by including and excluding given weather events    >15 min       34s
 
 

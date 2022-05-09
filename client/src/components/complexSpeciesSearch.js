@@ -8,13 +8,12 @@ import React, { useState } from 'react';
 import FocusLock from "react-focus-lock";
 import { getSpeciesData } from '../fetcher.js';
 
-
 // 2. Create the form
 const Form = ({ setData, setMsg }) => {
   const categories = ['Mammal', 'Bird', 'Reptile', 'Amphibian', 'Fish', 
   'Spider/Scorpion', 'Insect', 'Crab/Lobster', 'Slug/Snail'];
   const [zip, setZip] = useState(0);
-  const [category, setCategory] = useState(0);
+  const [category, setCategory] = useState("");
 
   function handleZipChange(event) {
     setZip(event.target.value);
@@ -25,6 +24,14 @@ const Form = ({ setData, setMsg }) => {
   }
 
   async function onSearchClick () {
+    if (!zip || !category) {
+      setMsg("Must enter a zipcode and a category!");
+      return;
+    }
+    if (isNaN(zip) || (zip.length != 5 && zip.length != 4)) {
+      setMsg("Must enter a valid zipcode!");
+      return;
+    }
     setMsg("Loading...")
     getSpeciesData(parseInt(zip), category).then((r) => {
       setData(r.results)
@@ -33,7 +40,6 @@ const Form = ({ setData, setMsg }) => {
       } else {
         setMsg("")
       }
-      console.log(r)
     })
   }
 
