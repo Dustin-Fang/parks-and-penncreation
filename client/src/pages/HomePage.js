@@ -5,17 +5,18 @@ import {
 } from '@chakra-ui/react';
 import NavBar from '../components/NavBar';
 import React, { useState } from 'react';
-import PopoverForm from '../components/parkSearch';
-import RPModal from '../components/recommendedParks';
+import PopoverForm from '../components/ParkRecSearch';
+import RPModal from '../components/RecommendedParks';
 import AnimalOfDay from '../components/AnimalOfDay';
 
 
 function HomePage() {
   const [recommendedParks, setRecommendedParks] = useState([]);
-  const [modalHeader, setModalHeader] = useState("");
+ 
   // show modal with park results?
   const [showModal, setShowModal] = useState(false);
-
+  const [modalHeader, setModalHeader] = useState("");
+  
   function handleSetShowModal(isOpen) { handleSetRecParks([]); setShowModal(isOpen) }
   function handleSetRecParks(arr) { setRecommendedParks(arr) }
   function handleSetModalHeader(body) { setModalHeader(body) }

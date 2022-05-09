@@ -1,9 +1,9 @@
 /* eslint-disable */
 import { Popover,PopoverTrigger, Button, HStack, PopoverContent, Box, FormControl,
-  FormLabel, Input, Stack, Text, RadioGroup, Radio, PopoverCloseButton, useDisclosure,
-  StatLabel, Stat, StatHelpText, StatNumber, VStack, TableContainer, Tbody, Tr, Td, Th,
-  Thead, Table
+  FormLabel, Input, Stack, Text, RadioGroup, Radio, PopoverCloseButton, TableContainer,
+  Tbody, Tr, Td, Th, Thead, Table
 } from '@chakra-ui/react';
+
 import React, { useState } from 'react';
 import FocusLock from "react-focus-lock";
 import { getSpeciesData } from '../fetcher.js';
@@ -32,46 +32,44 @@ const Form = ({ setData, setMsg }) => {
       setMsg("Must enter a valid zipcode!");
       return;
     }
-    setMsg("Loading...")
-    getSpeciesData(parseInt(zip), category).then((r) => {
-      setData(r.results)
-      if (!r.results.length) {
-        setMsg("No data available.")
+    setMsg("Loading...");
+    getSpeciesData(parseInt(zip), category).then((species) => {
+      setData(species.results)
+      if (!species.results.length) {
+        setMsg("No data available.");
       } else {
-        setMsg("")
+        setMsg("");
       }
     })
   }
 
   return (
-    <Stack>
-      <FormControl>
-    <FormLabel > Zipcode </FormLabel>
-    <Input id="Zip"  onChange={handleZipChange}  bg="A7C193" variant='outline' placeholder='04609' /> 
+  <Stack>
+    <FormControl>
+      <FormLabel > Zipcode </FormLabel>
+      <Input id="Zip"  onChange={handleZipChange}  bg="A7C193" variant='outline' placeholder='04609' /> 
 
-    <FormLabel > Species Category </FormLabel>
-    <RadioGroup onClick={handleCatChange}>
-        {categories.map((cat) => 
-           <Radio key={cat} value={cat}>{cat}</Radio>
-         )}
-
-    </RadioGroup>
-
-  </FormControl>
-  <Button onClick={onSearchClick} colorScheme='green'>
-          Search 
-        </Button>
-     </Stack>
+      <FormLabel > Species Category </FormLabel>
+      <RadioGroup onClick={handleCatChange}>
+          {categories.map((cat) => 
+            <Radio key={cat} value={cat}> {cat} </Radio>
+          )}
+      </RadioGroup>
+    </FormControl>
+    <Button onClick={onSearchClick} colorScheme='green'>
+      Search 
+    </Button>
+  </Stack>
   )
 }
 
 const PopoverForm = () => {
-//  const { onOpen, onClose, isOpen } = useDisclosure()
-  // const firstFieldRef = React.useRef(null)
   const [hasData, setHasData] = useState(false);
   const [dataToDisplay, setDataToDisplay] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [msg, setMsg] = useState("");
+
+  // is the search dropdown open?
+  const [isOpen, setIsOpen] = useState(false);
 
   function handleData (data) {
     setDataToDisplay(data);

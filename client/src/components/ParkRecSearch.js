@@ -36,7 +36,7 @@ const Form = ({ setShowModal, getResults, setModalHeader }) => {
       setError("A weather event cannot both be desirable and undesirable!")
     } 
     else {
-      // console.log("loading...")
+      // display results box
       setShowModal(true); 
       recommendPark(undesirableSelected.current, desirableSelected.current).then((r) => {
         if (!r.results.length) {
@@ -71,12 +71,12 @@ const Form = ({ setShowModal, getResults, setModalHeader }) => {
   }
 
   return (
-    <Stack>
+  <Stack>
     <FormControl as='fieldset'>
     <FormLabel >Desirable Weather</FormLabel>
     <RadioGroup onClick={onDesirableClick}>
         {weatherEvents.map((event) => 
-           <Radio key={event +"1"} value={event}>{event}</Radio>
+           <Radio key={event +"1"} value={event}> {event} </Radio>
          )}
 
     </RadioGroup>
@@ -84,16 +84,16 @@ const Form = ({ setShowModal, getResults, setModalHeader }) => {
     <FormLabel > Undesirable Weather </FormLabel>
     <RadioGroup onClick={onUndesirableClick}>
         {weatherEvents.map((event) => 
-           <Radio key={event +"2"} value={event}>{event}</Radio>
+           <Radio key={event +"2"} value={event}> {event} </Radio>
          )}
 
     </RadioGroup>
-  </FormControl>
+    </FormControl>
         <Button  onClick={onSearchClick} colorScheme='green'>
           Search
         </Button>
        <Text fontSize="14px" fontWeight="semibold" color="#f51d0a"> {error} </Text>
-     </Stack>
+  </Stack>
   )
 }
 
@@ -118,7 +118,6 @@ const PopoverForm = ({ setShowModal, getResults, setModalHeader }) => {
             <Form setShowModal={setShowModal} getResults={getResults} setModalHeader={setModalHeader}/>
           </FocusLock>
         </PopoverContent>
-  
       </Popover>
       </Box>
     </>

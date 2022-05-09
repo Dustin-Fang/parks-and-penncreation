@@ -7,7 +7,6 @@ import {
   VStack,
   PopoverContent,
   Box,
-  Center,
   FormControl,
   FormLabel,
   Input,
@@ -24,9 +23,10 @@ const loc = "http://localhost:3000";
 
 // 2. Create the form
 const Form = ({ setResults, setMsg }) => {
+  // search by scientific name, common name, etc.
   const [searchTerm, setSearchTerm] = useState("");
+  // user input
   const [input, setInput] = useState("");
-
 
   function handleinputChange(event) {
     setInput(event.target.value);
@@ -34,14 +34,14 @@ const Form = ({ setResults, setMsg }) => {
   }
 
   async function onSearchClick() {
-    setResults([]); // reset
+    setResults([]); // reset results for new search
     setMsg("Loading...");
-    const term = searchTerm.split(" ")[1];
+
+    // remove "by" from search term (used to label button)
+    const term = searchTerm.split(" ")[1]; 
     
     if(term === "CName") {
-      console.log("cname")
       getSpecies({commonName:input}).then((r) => {
-        console.log(r)
         if (r.results.length) {
           setMsg(""); 
           setResults(r.results)
@@ -90,7 +90,6 @@ const Form = ({ setResults, setMsg }) => {
     <FormLabel > Common name</FormLabel>
     <Input id="CName"  onChange={handleinputChange}  bg="A7C193" variant='outline' placeholder='Fox' /> 
 
-
     <FormLabel > Zipcode </FormLabel>
     <Input id="Zip"  onChange={handleinputChange}  bg="A7C193" variant='outline' placeholder='04609' /> 
 
@@ -99,201 +98,216 @@ const Form = ({ setResults, setMsg }) => {
 
   </FormControl>
   <Button onClick={onSearchClick} colorScheme='green'>
-          Search {searchTerm}
-        </Button>
-     </Stack>
+    Search {searchTerm}
+   </Button>
+  </Stack>
   )
 }
 
 const PopoverForm = () => {
   const hasResults = useRef(false);
-  const [results, setResults] = useState([]);
   const [displayedResults, setDisplayedResults] = useState([]);
+  // is search dropdown open?
   const [isOpen, setIsOpen] = useState(false);
+
+  // are detailed results displayed?
   const [modalOpen, setModalOpen] = useState(false)
+
   const [expandedSpecies, setExpandedSpecies] = useState({})
+  // expanded species' parks & weather
   const [foundInParks, setFoundInParks] = useState([]);
   const [commonOccurrences, setCommonOccurrences] = useState([]);
+
+  // loading/error msg
   const [msg, setMsg] = useState("");
 
   function handleSetResults(arr) {
-    setResults(arr.slice(0, 5));
     setDisplayedResults(arr.slice(0, 5));
-    setIsOpen(false) 
+
+    // close drop down inpt menu
+    setIsOpen(false);
+
+    // if arr is empty, reset
     if (!arr.length) {
       setModalOpen(false);
       hasResults.current = false; 
       return;
     }
- 
+    // if arr.length, show results
     hasResults.current = true;
   }
 
-  async function handleModal(x) {
+  // display detailed results, or reset
+  async function handleModal(species) {
     setMsg("Loading weather...");
 
-    // reset any previous stats while we wait for new results
+    // reset any previous states while we wait for new results
     setFoundInParks([]);
     setCommonOccurrences([]);
-    if (x) {
-      const parks = await getParksBySpecies({pageNum:1, commonName: x.CommonName});
-        setModalOpen(true)
-        hasResults.current = false;
-        setExpandedSpecies(x);
 
+    // if species passed in, query for parks & weather
+    if (species) {
+      const parks = await getParksBySpecies({pageNum:1, commonName: species.CommonName});
+        // show detailed view
+        setModalOpen(true)
+
+        // hide initial results list
+        hasResults.current = false;
+
+        setExpandedSpecies(species);
         const tempParks = [];
+        // note: get only the first state listed (if multiple)
         parks.results.map(park => tempParks.push({name: park.Name, state: park.State.split(",")[0], id: park.ParkId}));
         setFoundInParks(tempParks);
    
         const tempEvents = [];
-        const events = await getSpeciesWeather({commonName: x.CommonName});
+        const events = await getSpeciesWeather({commonName: species.CommonName});
           //console.log(events);
         events.results.map(e => tempEvents.push({event: e.WeatherType, num: e.Occurances}));
         // set events when full list is populated
         setCommonOccurrences(tempEvents); 
-        setMsg("");
+
+        // clear error/loading msg
+        setMsg(""); 
       } else {
-      // if no data was passed in, we are closint the modal. reset everything
+      // if no data was passed in, we are closing the modal. reset everything
       setModalOpen(false);
       setFoundInParks([]);
       setCommonOccurrences([]);
       setMsg("");
       
-      // shows initial list of results, rather than detailed view
+      // displays initial list of results rather than detailed view
       hasResults.current = true; 
     }
   }
 
   return (
-    <> 
-    <Box bg="#A7C193" width="600px" height="700px">      
-      <Box  padding={2} mr={3} >
-      <Popover
-        placement='bottom'
-        closeOnBlur={false}
-        isOpen={isOpen}
-      >
-        <PopoverTrigger>
-          <HStack>
-          <Input onClick={() => {setIsOpen(true)}} bg="A7C193" variant='outline' isReadOnly placeholder='Search for a species' />        
-          </HStack>
-        
-        </PopoverTrigger>
-        <PopoverContent p={5}>
-          {/* <FocusLock persistentFocus={false}> */}
-            <PopoverCloseButton onClick={() => {setIsOpen(false)}}/>
-            <Form setResults={handleSetResults}setMsg={setMsg} />
-          {/* </FocusLock> */}
-        </PopoverContent>
-      </Popover>
-     
-       </Box> 
-     
-  {hasResults.current  && displayedResults.map(r =>  
-    
-       <Box  key={r.SpeciesId}>
-          <HStack paddingLeft={5} paddingTop={3}>
-            <Text fontWeight="bold"> Name: </Text>
-            <Link onClick={() => handleModal(r)}>{r.CommonName} </Link>
-        
-            <Text fontWeight="bold"> Category:</Text>
-            <Text> {r.Category} </Text>
-          </HStack>
-
-          <Box paddingLeft={5} paddingBottom={3} > 
-            <HStack>
-            <Text fontWeight="semibold"> Scientific Name:</Text>
-            <Text> {r.ScientificName} </Text>
-
-            <Text fontWeight="semibold"> ID:</Text>
-            <Text> {r.SpeciesId} </Text>
-
-            </HStack>
-
-            <HStack>
-            <Text fontWeight="semibold"> Family:</Text>
-            <Text> {r.Family} </Text>
-
-            <Text fontWeight="semibold"> Order:</Text>
-            <Text> {r.SpeciesOrder} </Text>
-            </HStack>
-
-            <HStack>
-            {r.Nativeness && 
-            <HStack>
-              <Text fontWeight="semibold"> Nativeness:</Text>
-              <Text> {r.Nativeness} </Text>
-            </HStack>}
-     
-            {r.Seasonality && 
-            <HStack>
-              <Text fontWeight="semibold"> Seasonality:</Text>
-              <Text> {r.Seasonality} </Text>
-            </HStack> }
-            </HStack>
-            {r.ConservationStatus &&  
-            <HStack>
-              <Text fontWeight="semibold"> Conservation Status:</Text>
-              <Text> {r.ConservationStatus} </Text>
-            </HStack>}
-         </Box>
-
-        <Divider/>
-      
-        </Box> )}
-
-     {modalOpen &&
-        <Popover >
-          <Box position="absolute" left={125} top={150} justifyContent="center" width="400px" height="200px"> 
-
-          <VStack>
-           
-          <HStack>
-          <Text fontWeight="bold"> Name:</Text>
-          <Text> {expandedSpecies.CommonName} </Text>
+  <> 
+  <Box bg="#A7C193" width="600px" height="700px">      
+    <Box  padding={2} mr={3} >
+    <Popover
+      placement='bottom'
+      closeOnBlur={false}
+      isOpen={isOpen}
+    >
+      <PopoverTrigger>
+        <HStack>
+        <Input onClick={() => {setIsOpen(true)}} bg="A7C193" variant='outline' isReadOnly placeholder='Search for a species' />        
         </HStack>
-   
+      
+      </PopoverTrigger>
+      <PopoverContent p={5}>
+          <PopoverCloseButton onClick={() => {setIsOpen(false)}}/>
+          <Form setResults={handleSetResults}setMsg={setMsg} />
+      </PopoverContent>
+    </Popover>
+      </Box> 
+    
+    {hasResults.current  && displayedResults.map(species =>  
+    <Box  key={species.SpeciesId}>
+      <HStack paddingLeft={5} paddingTop={3}>
+        <Text fontWeight="bold"> Name: </Text>
+        <Link onClick={() => handleModal(species)}>{species.CommonName} </Link>
+    
+        <Text fontWeight="bold"> Category:</Text>
+        <Text> {species.Category} </Text>
+      </HStack>
+
+      <Box paddingLeft={5} paddingBottom={3} > 
         <HStack>
           <Text fontWeight="semibold"> Scientific Name:</Text>
-          <Text> {expandedSpecies.ScientificName} </Text>
-        </HStack>
+          <Text> {species.ScientificName} </Text>
 
-        <HStack>
           <Text fontWeight="semibold"> ID:</Text>
-          <Text> {expandedSpecies.SpeciesId} </Text>
+          <Text> {species.SpeciesId} </Text>
         </HStack>
 
         <HStack>
-          <Text fontWeight="semibold"> Category:</Text>
-          <Text> {expandedSpecies.Category} </Text>
-        </HStack>
-     
-     
-        <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>    
-        { foundInParks.map(park =>  (<Link key={park.name} onClick={() => window.location.href = `${loc}/parks?id=${park.id}` } > {park.name}, {park.state}  </Link>)) }
-     
-        {commonOccurrences.length &&
-        <Box>
-        <Text fontWeight="bold" fontSize="15px"> Most Common Weather Events Experienced (2021) </Text>    
-        {commonOccurrences.map(weather =>  (
-        <HStack justifyContent={"center"} key={weather.event}> 
-        <Text fontWeight="semibold">  {weather.event}: </Text>
-        <Text> {weather.num} occurrences</Text>
-         </HStack> )) }
-        </Box> }
-      
+          <Text fontWeight="semibold"> Family:</Text>
+          <Text> {species.Family} </Text>
 
-        <Button onClick={() => handleModal()} variantColor="blue" >
-          Close
-        </Button>
-        </VStack>
+          <Text fontWeight="semibold"> Order:</Text>
+          <Text> {species.SpeciesOrder} </Text>
+        </HStack>
+
+        <HStack>
+          { species.Nativeness && 
+          <HStack>
+            <Text fontWeight="semibold"> Nativeness:</Text>
+            <Text> {species.Nativeness} </Text>
+          </HStack> }
   
-        </Box>
-        </Popover> }
-     <Text fontSize="15px" position="absolute" left={250} bottom={50}>  {msg} </Text>
+          { species.Seasonality && 
+          <HStack>
+            <Text fontWeight="semibold"> Seasonality:</Text>
+            <Text> {species.Seasonality} </Text>
+          </HStack> }
+        </HStack>
+
+        { species.ConservationStatus &&  
+        <HStack>
+          <Text fontWeight="semibold"> Conservation Status:</Text>
+          <Text> {species.ConservationStatus} </Text>
+        </HStack> }
       </Box>
-    </>
-  )
+      <Divider/>
+    
+      </Box> )}
+
+    {modalOpen &&
+      <Popover >
+        <Box position="absolute" left={125} top={150} justifyContent="center" width="400px" height="200px"> 
+        <VStack>
+
+        <HStack>
+          <Text fontWeight="bold"> Name:</Text>
+          <Text> {expandedSpecies.CommonName} </Text>
+         </HStack>
+  
+      <HStack>
+        <Text fontWeight="semibold"> Scientific Name:</Text>
+        <Text> {expandedSpecies.ScientificName} </Text>
+      </HStack>
+
+      <HStack>
+        <Text fontWeight="semibold"> ID:</Text>
+        <Text> {expandedSpecies.SpeciesId} </Text>
+      </HStack>
+
+      <HStack>
+        <Text fontWeight="semibold"> Category:</Text>
+        <Text> {expandedSpecies.Category} </Text>
+      </HStack>
+    
+      <Text fontWeight="bold" fontSize="15px"> Found in Parks: </Text>    
+      {foundInParks.map(park =>  
+        (<Link key={park.name} onClick={() => window.location.href = `${loc}/parks?id=${park.id}` } > {park.name}, {park.state}  </Link>)) 
+       }
+    
+      {commonOccurrences.length &&
+        <Box>
+          <Text fontWeight="bold" fontSize="15px"> Most Common Weather Events Experienced (2021) </Text>    
+          
+          { commonOccurrences.map(weather =>  (
+          <HStack justifyContent={"center"} key={weather.event}> 
+            <Text fontWeight="semibold">  {weather.event}: </Text>
+            <Text> {weather.num} occurrences</Text>
+          </HStack> 
+          ))}
+        </Box> 
+      }
+
+      <Button onClick={() => handleModal()} variantColor="blue" >
+        Close
+      </Button>
+      </VStack>
+      </Box>
+      </Popover> 
+    }
+      <Text fontSize="15px" position="absolute" left={250} bottom={50}>  {msg} </Text>
+    </Box>
+  </>
+)
 }
 
 export default PopoverForm;

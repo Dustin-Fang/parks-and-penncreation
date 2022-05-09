@@ -36,5 +36,5 @@ root.render(
       </Switch>
     </Router>
     </ChakraProvider>
-    </React.StrictMode>
+  </React.StrictMode>
 );

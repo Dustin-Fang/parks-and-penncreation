@@ -1,5 +1,6 @@
 import config from './config.json'
 
+// Route 1 (id)
 export const getPark = async (parkId) => {
   const responseBody = {
     ParkId: parkId
@@ -17,6 +18,7 @@ export const getPark = async (parkId) => {
   return response.json();
 }
 
+// Route 1
 export const getParksSearch = async (parkName, zipcode, state, page, pagesize) => {
   const responseBody = {
     ParkName: parkName,
@@ -38,6 +40,7 @@ export const getParksSearch = async (parkName, zipcode, state, page, pagesize) =
   return response.json();
 }
 
+// Route 8
 export const getParksFunFact = async (id) => {
   const response =
     await fetch(`http://${config.server_host}:${config.server_port}/parks/funfact/${id}`, {
@@ -47,6 +50,7 @@ export const getParksFunFact = async (id) => {
   return response.json();
 }
 
+// Route 4
 export const getSpeciesByPark = async (pageNumber, ParkId) => {
   const response =
     await fetch(`http://${config.server_host}:${config.server_port}/parks/species/${pageNumber}?ParkId=${ParkId}`, {
@@ -55,6 +59,7 @@ export const getSpeciesByPark = async (pageNumber, ParkId) => {
   return response.json();
 }
 
+// Route 9
 export const getMostWeatherSpecies = async (pageNumber, weatherType) => {
   const response =
     await fetch(`http://${config.server_host}:${config.server_port}/parks/mostWeatherSpecies/${pageNumber}?weatherType=${weatherType}`, {
@@ -63,6 +68,7 @@ export const getMostWeatherSpecies = async (pageNumber, weatherType) => {
   return response.json();
 }
 
+// Route 9
 export const postParksWeatherSearch = async (zipcode, startMonth, endMonth) => {
   const responseBody = {
     zipcode: zipcode,
@@ -82,23 +88,15 @@ export const postParksWeatherSearch = async (zipcode, startMonth, endMonth) => {
   return response.json();
 }
 
-
-
-
-
-
-
-/**** Shanna's functions below (will remove this comment on final push) *****/
-
-
+// Route 2 (no input)
 export const getRandomAnimal = async () => {
   const response = await fetch(`http://${config.server_host}:${config.server_port}/species`, {
     method: 'GET',
   });
-  // console.log(response.json())
   return response.json();
 }
 
+// Route 3
 export const getParksBySpecies = async (input) => {
   if (input.scientificName) {
     input.scientificName.replace(" ", "+");
@@ -106,7 +104,7 @@ export const getParksBySpecies = async (input) => {
       await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${input.pageNum}?scientificName=${input.scientificName}`, {
         method: 'GET',
       });
-    // console.log(response.json())
+
     return response.json();
     } else if (input.commonName) {
       input.commonName.replace(" ", "+");
@@ -114,11 +112,11 @@ export const getParksBySpecies = async (input) => {
         await fetch(`http://${config.server_host}:${config.server_port}/species/parks/${input.pageNum}?commonName=${input.commonName}`, {
           method: 'GET',
         });
-      // console.log(response.json())
       return response.json();
     }
 }
 
+// Route 10
 export const recommendPark = async (undesir, desir) => {
   const userWants = {
     desirableEvents: desir,
@@ -134,10 +132,10 @@ export const recommendPark = async (undesir, desir) => {
         "Content-Type": "application/json",
       },
     });
-  // console.log(response.json())
   return response.json();
 }
 
+// Route 2
 export const getSpecies = async (input) => {
   if (input.commonName) {
     const response =
@@ -169,6 +167,7 @@ export const getSpecies = async (input) => {
   }
 }
 
+// Route 7
 export const getSpeciesWeather = async (input) => {
   if (input.commonName) {
     const response =
@@ -186,6 +185,7 @@ export const getSpeciesWeather = async (input) => {
   } 
 }
 
+// Route 5
 export const getSpeciesData = async (zipcode, category) => {
   const inpts = {
     speciesCategory: category,
@@ -202,4 +202,4 @@ export const getSpeciesData = async (zipcode, category) => {
     },
   });
   return response.json();
-  } 
+} 

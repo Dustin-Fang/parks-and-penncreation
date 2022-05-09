@@ -5,10 +5,9 @@ import {
   HStack,
 } from '@chakra-ui/react';
 
-import SimpleSearch from '../components/basicSpeciesSearch'
-import ComplexSearch from '../components/complexSpeciesSearch'
+import SimpleSearch from '../components/BasicSpeciesSearch';
+import ComplexSearch from '../components/ComplexSpeciesSearch';
 import NavBar from '../components/NavBar';
-import AnimalOfDay from '../components/AnimalOfDay';
 
 function SpeciesPage() {
   return (
@@ -22,10 +21,9 @@ function SpeciesPage() {
       <NavBar/>
 
       <HStack position="absolute" top="40px" padding={10} spacing="100px">
-      <SimpleSearch/> 
-      <ComplexSearch /> 
+        <SimpleSearch/> 
+        <ComplexSearch /> 
       </HStack>
-
   </Flex>
   );
 }
