@@ -248,7 +248,7 @@ class ParksPage extends React.Component {
                                     return {
                                         onClick: () => { this.setPark(record.ParkId) }, // clicking a row takes the user to a detailed view of the park using the ParkId parameter
                                     };
-                                }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 10], defaultPageSize: 5, showQuickJumper: true }}>
+                                }} dataSource={this.state.parksResults} pagination={{ pageSizeOptions: [5, 7], defaultPageSize: 5, showQuickJumper: true }}>
                                     <Column title="Name" dataIndex="ParkName" key="ParkName"></Column>
                                     <Column title="State" dataIndex="State" key="State"></Column>
                                     <Column title="Acres" dataIndex="Acres" key="Acres"></Column>
